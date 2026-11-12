@@ -1,0 +1,236 @@
+import { Injectable, inject } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import {
+  AppException,
+  ApiException,
+  AuthenticationException,
+  AuthorizationException,
+  ValidationException,
+  ComponentLoadException,
+  NetworkException,
+  NotFoundException,
+  ConflictException,
+  ServerException,
+  TimeoutException,
+  ConfigurationException,
+  BusinessLogicException
+} from '../exceptions/custom-exceptions';
+
+/**
+ * Interfaz para configuración de manejo de errores
+ */
+export interface ErrorHandlerConfig {
+  showSnackbar?: boolean;
+  duration?: number;
+  logToConsole?: boolean;
+  logToServer?: boolean;
+}
+
+/**
+ * Servicio global para manejo de excepciones y errores
+ */
+@Injectable({ providedIn: 'root' })
+export class GlobalErrorHandlerService {
+  private snackBar = inject(MatSnackBar);
+  
+  private defaultConfig: ErrorHandlerConfig = {
+    showSnackbar: true,
+    duration: 5000,
+    logToConsole: true,
+    logToServer: false
+  };
+
+  /**
+   * Maneja cualquier tipo de error y aplica la lógica correspondiente
+   */
+  handleError(error: any, config?: ErrorHandlerConfig): void {
+    const finalConfig = { ...this.defaultConfig, ...config };
+    
+    let userMessage: string;
+    let logMessage: string;
+
+    // Determinar el tipo de error y generar mensajes apropiados
+    if (error instanceof ApiException) {
+      userMessage = this.handleApiException(error);
+      logMessage = `[API Error] ${error.message} - Status: ${error.statusCode} - Endpoint: ${error.endpoint}`;
+    } else if (error instanceof AuthenticationException) {
+      userMessage = this.handleAuthenticationException(error);
+      logMessage = `[Auth Error] ${error.message}`;
+    } else if (error instanceof AuthorizationException) {
+      userMessage = this.handleAuthorizationException(error);
+      logMessage = `[Authorization Error] ${error.message}`;
+    } else if (error instanceof ValidationException) {
+      userMessage = this.handleValidationException(error);
+      logMessage = `[Validation Error] ${error.message} - Errors: ${JSON.stringify(error.errors)}`;
+    } else if (error instanceof ComponentLoadException) {
+      userMessage = this.handleComponentLoadException(error);
+      logMessage = `[Component Load Error] ${error.message} - Component: ${error.componentName}`;
+    } else if (error instanceof NetworkException) {
+      userMessage = this.handleNetworkException(error);
+      logMessage = `[Network Error] ${error.message}`;
+    } else if (error instanceof NotFoundException) {
+      userMessage = this.handleNotFoundException(error);
+      logMessage = `[Not Found] ${error.message} - Resource: ${error.resourceType} - ID: ${error.resourceId}`;
+    } else if (error instanceof ConflictException) {
+      userMessage = this.handleConflictException(error);
+      logMessage = `[Conflict Error] ${error.message}`;
+    } else if (error instanceof ServerException) {
+      userMessage = this.handleServerException(error);
+      logMessage = `[Server Error] ${error.message}`;
+    } else if (error instanceof TimeoutException) {
+      userMessage = this.handleTimeoutException(error);
+      logMessage = `[Timeout Error] ${error.message} - Duration: ${error.timeoutDuration}ms`;
+    } else if (error instanceof ConfigurationException) {
+      userMessage = this.handleConfigurationException(error);
+      logMessage = `[Configuration Error] ${error.message}`;
+    } else if (error instanceof BusinessLogicException) {
+      userMessage = this.handleBusinessLogicException(error);
+      logMessage = `[Business Logic Error] ${error.message}`;
+    } else if (error instanceof AppException) {
+      userMessage = error.message;
+      logMessage = `[App Error] ${error.code}: ${error.message}`;
+    } else {
+      userMessage = 'Ha ocurrido un error inesperado';
+      logMessage = `[Unknown Error] ${error?.message || error}`;
+    }
+
+    // Mostrar mensaje al usuario
+    if (finalConfig.showSnackbar) {
+      this.showErrorSnackbar(userMessage, finalConfig.duration!);
+    }
+
+    // Log en consola
+    if (finalConfig.logToConsole) {
+      console.error(logMessage, error);
+    }
+
+    // Log al servidor (implementar según necesidades)
+    if (finalConfig.logToServer) {
+      this.logToServer(error, logMessage);
+    }
+  }
+
+  /**
+   * Maneja errores HTTP genéricos
+   */
+  handleHttpError(error: any, endpoint?: string): void {
+    const status = error?.status;
+    let message: string;
+
+    switch (status) {
+      case 0:
+        throw new NetworkException('No se pudo conectar con el servidor. Verifique su conexión a internet.');
+      case 400:
+        throw new ValidationException('Los datos enviados son inválidos', error?.error?.errors);
+      case 401:
+        throw new AuthenticationException('Su sesión ha expirado. Por favor, inicie sesión nuevamente.');
+      case 403:
+        throw new AuthorizationException('No tiene permisos para acceder a este recurso.');
+      case 404:
+        throw new NotFoundException('El recurso solicitado no existe.');
+      case 409:
+        throw new ConflictException('El recurso ya existe o hay un conflicto con los datos.');
+      case 408:
+      case 504:
+        throw new TimeoutException('La solicitud ha excedido el tiempo de espera.');
+      case 500:
+      case 502:
+      case 503:
+        throw new ServerException('Error en el servidor. Por favor, intente más tarde.');
+      default:
+        message = error?.error?.message || error?.message || 'Error al comunicarse con el servidor';
+        throw new ApiException(message, status, endpoint);
+    }
+  }
+
+  /**
+   * Métodos privados para manejar cada tipo de excepción
+   */
+  private handleApiException(error: ApiException): string {
+    return `Error en la API: ${error.message}`;
+  }
+
+  private handleAuthenticationException(error: AuthenticationException): string {
+    return error.message;
+  }
+
+  private handleAuthorizationException(error: AuthorizationException): string {
+    return error.message;
+  }
+
+  private handleValidationException(error: ValidationException): string {
+    const errorMessages = Object.values(error.errors)
+      .flat()
+      .join(', ');
+    return errorMessages || error.message;
+  }
+
+  private handleComponentLoadException(error: ComponentLoadException): string {
+    return `No se pudo cargar el componente${error.componentName ? `: ${error.componentName}` : ''}`;
+  }
+
+  private handleNetworkException(error: NetworkException): string {
+    return error.message;
+  }
+
+  private handleNotFoundException(error: NotFoundException): string {
+    return error.message;
+  }
+
+  private handleConflictException(error: ConflictException): string {
+    return error.message;
+  }
+
+  private handleServerException(error: ServerException): string {
+    return error.message;
+  }
+
+  private handleTimeoutException(error: TimeoutException): string {
+    return error.message;
+  }
+
+  private handleConfigurationException(error: ConfigurationException): string {
+    return error.message;
+  }
+
+  private handleBusinessLogicException(error: BusinessLogicException): string {
+    return error.message;
+  }
+
+  /**
+   * Muestra un snackbar con el mensaje de error
+   */
+  private showErrorSnackbar(message: string, duration: number): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
+  }
+
+  /**
+   * Envía el error al servidor para logging (implementar según necesidades)
+   */
+  private logToServer(error: any, logMessage: string): void {
+    // TODO: Implementar envío de logs al servidor
+    // Ejemplo: this.http.post('/api/logs', { error: logMessage, timestamp: new Date() }).subscribe();
+    console.log('Log to server:', logMessage);
+  }
+
+  /**
+   * Método auxiliar para crear excepciones desde respuestas HTTP
+   */
+  createExceptionFromHttpError(error: any, endpoint?: string): AppException {
+    try {
+      this.handleHttpError(error, endpoint);
+      // Si handleHttpError no lanza una excepción, crear una genérica
+      return new ApiException(error?.message || 'Error desconocido', error?.status, endpoint);
+    } catch (exception) {
+      if (exception instanceof AppException) {
+        return exception;
+      }
+      return new ApiException(String(exception), error?.status, endpoint);
+    }
+  }
+}

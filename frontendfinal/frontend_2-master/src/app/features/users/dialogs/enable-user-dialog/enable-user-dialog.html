@@ -1,0 +1,20 @@
+@if(comunication.selectedUser()?.estado === 1) {
+<div class="p-8 w-full flex flex-col items-center justify-center">
+  <div class="mb-6 text-center">
+    <h1 class="text-2xl font-bold text-gray-800">La persona ya esta habilitada</h1>
+  </div>
+  <button class="btn btn-error text-white font-medium w-full" (click)="close()">Cerrar</button>
+</div>
+} @else {
+<div class="p-8 w-full flex flex-col items-center justify-center">
+  <div class="mb-6 text-center">
+    <h1 class="text-2xl font-bold text-gray-800">¿Está seguro de habilitar a la Persona?</h1>
+  </div>
+
+  <div class="flex flex-row gap-6 mt-4 w-full justify-center">
+    <button class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium" (click)="enableUser()">Aceptar</button>
+
+    <button class="btn btn-error text-white font-medium" (click)="close()">Cancelar</button>
+  </div>
+</div>
+}

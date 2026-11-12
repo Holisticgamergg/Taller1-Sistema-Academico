@@ -1,0 +1,11 @@
+<div class="p-8 w-full flex flex-col items-center justify-center">
+  <div class="mb-6 text-center">
+    <h1 class="text-2xl font-bold text-gray-800">¿Está seguro de deshabilitar el Menú?</h1>
+    <p class="text-gray-600 mt-2">Menú: <strong>{{ comunication.selectedMenu()?.nombre }}</strong></p>
+  </div>
+
+  <div class="flex flex-row gap-6 mt-4 w-full justify-center">
+    <button class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium" (click)="disableMenu()">Aceptar</button>
+    <button class="btn btn-error text-white font-medium" (click)="close()">Cancelar</button>
+  </div>
+</div>

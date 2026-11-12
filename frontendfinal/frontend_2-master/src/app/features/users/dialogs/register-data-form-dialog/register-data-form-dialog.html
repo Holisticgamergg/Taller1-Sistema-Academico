@@ -1,0 +1,66 @@
+<div class="p-8 w-full h-full flex flex-col items-center justify-center bg-white">
+  <div class="mb-8 text-center w-full max-w-lg">
+    <h1 class="text-3xl font-extrabold text-[#0A1C2C]">Adicionar datos de acceso</h1>
+    <p class="text-base text-gray-600 mt-2">
+      Usuario:
+      <span class="font-semibold"
+        >{{ comunication.selectedUser()?.nombre }} {{ comunication.selectedUser()?.ap }}
+        {{ comunication.selectedUser()?.am }}</span
+      >
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="w-full max-w-md bg-white p-8">
+    <div class="space-y-2 mb-6">
+      <label for="login" class="block text-sm font-medium text-gray-700">Login</label>
+      <input type="text" id="login" formControlName="login" class="input block w-full" />
+    </div>
+
+    <div class="space-y-2 mb-6">
+      <label for="passw" class="block text-sm font-medium text-gray-700">Contraseña</label>
+      <input type="password" id="passw" formControlName="password" class="input block w-full" />
+    </div>
+
+    <div class="space-y-2 mb-8">
+      <label for="passwr" class="block text-sm font-medium text-gray-700"
+        >Repita la Contraseña</label
+      >
+      <input
+        type="password"
+        id="passwr"
+        formControlName="passwordConfirm"
+        class="input block w-full"
+      />
+    </div>
+
+    <div class="flex flex-row justify-center gap-10 w-full">
+      <button
+        type="button"
+        onclick="my_modal_5.showModal()"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium"
+        [disabled]="form.invalid"
+      >
+        Guardar
+      </button>
+      <button type="button" class="btn btn-error text-white font-medium" (click)="close()">
+        Cancelar
+      </button>
+    </div>
+  </form>
+</div>
+
+<dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box text-center">
+    <h3 class="text-lg font-bold">Seguro de registrar datos de acceso a la persona?</h3>
+    <p class="py-4">Confirma que todos los datos ingresados son correctos.</p>
+
+    <div class="modal-action flex justify-center">
+      <form method="dialog" class="flex gap-4">
+        <button class="btn btn-error text-white font-medium" (click)="close()">Cancelar</button>
+        <button type="submit" class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium" (click)="submit()">
+          Aceptar
+        </button>
+      </form>
+    </div>
+  </div>
+</dialog>

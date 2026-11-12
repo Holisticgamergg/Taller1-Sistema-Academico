@@ -1,0 +1,36 @@
+﻿# ===== BACKEND (Java/Maven) =====
+backend_2/backend_2/target/
+backend_2/backend_2/.mvn/
+!backend_2/backend_2/.mvn/wrapper/maven-wrapper.jar
+!backend_2/backend_2/.mvn/wrapper/maven-wrapper.properties
+backend_2/backend_2/.vscode/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+# ===== FRONTEND (Node/Angular) =====
+frontendfinal/frontend_2-master/node_modules/
+frontendfinal/frontend_2-master/dist/
+frontendfinal/frontend_2-master/.angular/cache/
+frontendfinal/frontend_2-master/.vscode/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+*.rar
+
+# ===== IDE =====
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/

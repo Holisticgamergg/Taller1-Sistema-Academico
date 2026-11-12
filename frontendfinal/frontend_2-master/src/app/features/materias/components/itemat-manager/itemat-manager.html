@@ -1,0 +1,68 @@
+<div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 mt-6">
+  <div class="flex justify-between items-center mb-4 border-b pb-3">
+    <h3 class="text-xl font-semibold text-gray-800">
+      Gestión Items de: <span class="text-[#007A5E]">{{ materia().nombre }}</span>
+    </h3>
+    <button (click)="cerrar()" class="btn btn-sm btn-ghost">
+      ✕
+    </button>
+  </div>
+
+  <div class="mb-4">
+    <button (click)="openAsignarDialog()" class="btn bg-[#007A5E] hover:bg-[#00624b] text-white">
+      Asignar Item
+    </button>
+  </div>
+
+  @if(isLoading()) {
+    <div class="flex justify-center py-12">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+    </div>
+  } @else if(items().length === 0) {
+    <div class="alert alert-info shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>No hay items asignados a esta materia</span>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      @for(itemat of items(); track itemat.codi) {
+        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="font-semibold text-lg text-[#0A1C2C]">{{ itemat.nombreItem }}</span>
+                <span 
+                  class="badge badge-sm"
+                  [class.badge-success]="itemat.estado === 1"
+                  [class.badge-error]="itemat.estado !== 1"
+                >
+                  {{ itemat.estado === 1 ? 'Activo' : 'Inactivo' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-4 text-sm text-gray-600">
+                <p>
+                  <span class="font-medium">Código:</span> {{ itemat.codi }}
+                </p>
+                <div class="flex items-center gap-1">
+                  <span class="font-medium">Ponderación:</span>
+                  <span class="badge badge-primary badge-lg font-bold">{{ itemat.ponderacion }}%</span>
+                </div>
+              </div>
+            </div>
+            <button 
+              (click)="eliminarItem(itemat)" 
+              class="btn btn-sm btn-error text-white"
+              title="Eliminar item"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

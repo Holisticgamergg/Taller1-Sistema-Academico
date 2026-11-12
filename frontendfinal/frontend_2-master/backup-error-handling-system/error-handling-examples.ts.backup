@@ -1,0 +1,181 @@
+import { Component, OnInit, inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { GlobalErrorHandlerService } from '../core/services/global-error-handler.service';
+import { 
+  ValidationException, 
+  ComponentLoadException 
+} from '../core/exceptions/custom-exceptions';
+
+/**
+ * EJEMPLO DE USO: Componente con manejo de errores
+ */
+@Component({
+  selector: 'app-example-component',
+  template: `
+    <div *ngIf="isLoading">Cargando...</div>
+    <div *ngIf="!isLoading && form">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <!-- Campos del formulario -->
+      </form>
+    </div>
+  `
+})
+export class ExampleComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private errorHandler = inject(GlobalErrorHandlerService);
+  
+  form!: FormGroup;
+  isLoading = true;
+
+  ngOnInit() {
+    try {
+      this.initializeForm();
+      this.isLoading = false;
+    } catch (error) {
+      const exception = new ComponentLoadException(
+        'No se pudo inicializar el formulario',
+        'ExampleComponent'
+      );
+      this.errorHandler.handleError(exception);
+      this.isLoading = false;
+    }
+  }
+
+  private initializeForm(): void {
+    // Simulación de un error en la inicialización
+    // En un caso real, esto podría fallar por dependencias faltantes, etc.
+    try {
+      this.form = this.fb.group({
+        name: ['', [Validators.required, Validators.minLength(3)]],
+        email: ['', [Validators.required, Validators.email]],
+        age: ['', [Validators.required, Validators.min(18)]]
+      });
+    } catch (error) {
+      throw new ComponentLoadException(
+        'Error al crear el formulario',
+        'ExampleComponent'
+      );
+    }
+  }
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      const errors = this.getFormErrors();
+      const exception = new ValidationException(
+        'Por favor, corrija los errores en el formulario',
+        errors
+      );
+      this.errorHandler.handleError(exception);
+      return;
+    }
+
+    // Procesar el formulario...
+  }
+
+  private getFormErrors(): { [key: string]: string[] } {
+    const errors: { [key: string]: string[] } = {};
+    
+    Object.keys(this.form.controls).forEach(key => {
+      const control = this.form.get(key);
+      if (control && control.errors) {
+        errors[key] = [];
+        
+        if (control.errors['required']) {
+          errors[key].push(`El campo ${key} es requerido`);
+        }
+        if (control.errors['minlength']) {
+          errors[key].push(`El campo ${key} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`);
+        }
+        if (control.errors['email']) {
+          errors[key].push(`El campo ${key} debe ser un email válido`);
+        }
+        if (control.errors['min']) {
+          errors[key].push(`El campo ${key} debe ser al menos ${control.errors['min'].min}`);
+        }
+      }
+    });
+    
+    return errors;
+  }
+}
+
+/**
+ * EJEMPLO DE USO: Servicio con manejo de errores
+ */
+@Component({
+  selector: 'app-example-service-usage',
+  template: `<div>Ver consola para ejemplos</div>`
+})
+export class ExampleServiceUsageComponent implements OnInit {
+  private errorHandler = inject(GlobalErrorHandlerService);
+
+  ngOnInit() {
+    this.demonstrateErrorHandling();
+  }
+
+  private demonstrateErrorHandling() {
+    // Ejemplo 1: Manejo de error de API
+    // this.userService.fetchUsers().subscribe({
+    //   next: (users) => console.log('Usuarios:', users),
+    //   error: (error) => {
+    //     // El error ya fue manejado por el interceptor
+    //     // Pero puedes hacer algo adicional aquí si es necesario
+    //   }
+    // });
+
+    // Ejemplo 2: Manejo de error con configuración personalizada
+    // this.errorHandler.handleError(
+    //   new ValidationException('Error personalizado', {}),
+    //   { showSnackbar: true, duration: 3000, logToConsole: true }
+    // );
+
+    // Ejemplo 3: Manejo de error de componente
+    // try {
+    //   // Código que puede fallar
+    //   this.loadComponent();
+    // } catch (error) {
+    //   this.errorHandler.handleError(error);
+    // }
+  }
+}
+
+/**
+ * EJEMPLO DE USO: En un diálogo
+ */
+@Component({
+  selector: 'app-example-dialog',
+  template: `
+    <h2>Registro de Usuario</h2>
+    <form [formGroup]="form" (ngSubmit)="onSave()">
+      <!-- Campos del formulario -->
+      <button type="submit">Guardar</button>
+    </form>
+  `
+})
+export class ExampleDialogComponent {
+  private errorHandler = inject(GlobalErrorHandlerService);
+  form!: FormGroup;
+
+  onSave(): void {
+    if (this.form.invalid) {
+      const exception = new ValidationException(
+        'Complete todos los campos requeridos'
+      );
+      this.errorHandler.handleError(exception, {
+        showSnackbar: true,
+        duration: 4000
+      });
+      return;
+    }
+
+    // this.userService.createUser(this.form.value).subscribe({
+    //   next: (response) => {
+    //     // Éxito
+    //   },
+    //   error: (error) => {
+    //     // El error ya fue manejado globalmente
+    //     // Cerrar el diálogo si es necesario
+    //   }
+    // });
+  }
+}

@@ -1,0 +1,14 @@
+<div class="mat-elevation-z8 overflow-auto rounded-lg mt-10">
+  <app-table
+    [data]="usuarios()"
+    [columns]="columns()"
+    (onEdit)="edit($event)"
+    (onDelete)="delete($event)"
+    (onEnable)="enable($event)"
+    (onView)="print($event)"
+    (onRegisterData)="registerData($event)"
+    (onEditData)="editData($event)"
+    [query]="query()"
+  >
+  </app-table>
+</div>

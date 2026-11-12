@@ -1,0 +1,18 @@
+/**
+ * Exportación centralizada de todas las excepciones
+ */
+export {
+  AppException,
+  ApiException,
+  AuthenticationException,
+  AuthorizationException,
+  ValidationException,
+  ComponentLoadException,
+  NetworkException,
+  NotFoundException,
+  ConflictException,
+  ServerException,
+  TimeoutException,
+  ConfigurationException,
+  BusinessLogicException
+} from './custom-exceptions';

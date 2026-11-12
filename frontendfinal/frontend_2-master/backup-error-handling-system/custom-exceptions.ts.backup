@@ -1,0 +1,183 @@
+/**
+ * Excepciones personalizadas para el manejo de errores en la aplicación
+ */
+
+/**
+ * Clase base para todas las excepciones personalizadas
+ */
+export abstract class AppException extends Error {
+  public readonly timestamp: Date;
+  public readonly code: string;
+
+  constructor(message: string, code: string) {
+    super(message);
+    this.name = this.constructor.name;
+    this.code = code;
+    this.timestamp = new Date();
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/**
+ * Excepción para errores relacionados con llamadas API
+ */
+export class ApiException extends AppException {
+  public readonly statusCode?: number;
+  public readonly endpoint?: string;
+
+  constructor(
+    message: string,
+    statusCode?: number,
+    endpoint?: string,
+    code: string = 'API_ERROR'
+  ) {
+    super(message, code);
+    this.statusCode = statusCode;
+    this.endpoint = endpoint;
+  }
+}
+
+/**
+ * Excepción para errores de autenticación
+ */
+export class AuthenticationException extends AppException {
+  constructor(message: string = 'Error de autenticación', code: string = 'AUTH_ERROR') {
+    super(message, code);
+  }
+}
+
+/**
+ * Excepción para errores de autorización
+ */
+export class AuthorizationException extends AppException {
+  constructor(
+    message: string = 'No tiene permisos para realizar esta acción',
+    code: string = 'AUTHORIZATION_ERROR'
+  ) {
+    super(message, code);
+  }
+}
+
+/**
+ * Excepción para errores de validación de formularios
+ */
+export class ValidationException extends AppException {
+  public readonly errors: { [key: string]: string[] };
+
+  constructor(
+    message: string = 'Error de validación',
+    errors: { [key: string]: string[] } = {},
+    code: string = 'VALIDATION_ERROR'
+  ) {
+    super(message, code);
+    this.errors = errors;
+  }
+}
+
+/**
+ * Excepción para errores de carga de componentes/módulos
+ */
+export class ComponentLoadException extends AppException {
+  public readonly componentName?: string;
+
+  constructor(
+    message: string = 'Error al cargar el componente',
+    componentName?: string,
+    code: string = 'COMPONENT_LOAD_ERROR'
+  ) {
+    super(message, code);
+    this.componentName = componentName;
+  }
+}
+
+/**
+ * Excepción para errores de red/conectividad
+ */
+export class NetworkException extends AppException {
+  constructor(
+    message: string = 'Error de conexión a la red',
+    code: string = 'NETWORK_ERROR'
+  ) {
+    super(message, code);
+  }
+}
+
+/**
+ * Excepción para recursos no encontrados
+ */
+export class NotFoundException extends AppException {
+  public readonly resourceType?: string;
+  public readonly resourceId?: string | number;
+
+  constructor(
+    message: string = 'Recurso no encontrado',
+    resourceType?: string,
+    resourceId?: string | number,
+    code: string = 'NOT_FOUND_ERROR'
+  ) {
+    super(message, code);
+    this.resourceType = resourceType;
+    this.resourceId = resourceId;
+  }
+}
+
+/**
+ * Excepción para conflictos de datos
+ */
+export class ConflictException extends AppException {
+  constructor(
+    message: string = 'Conflicto con los datos existentes',
+    code: string = 'CONFLICT_ERROR'
+  ) {
+    super(message, code);
+  }
+}
+
+/**
+ * Excepción para errores del servidor
+ */
+export class ServerException extends AppException {
+  constructor(
+    message: string = 'Error interno del servidor',
+    code: string = 'SERVER_ERROR'
+  ) {
+    super(message, code);
+  }
+}
+
+/**
+ * Excepción para timeout de operaciones
+ */
+export class TimeoutException extends AppException {
+  public readonly timeoutDuration?: number;
+
+  constructor(
+    message: string = 'La operación ha excedido el tiempo de espera',
+    timeoutDuration?: number,
+    code: string = 'TIMEOUT_ERROR'
+  ) {
+    super(message, code);
+    this.timeoutDuration = timeoutDuration;
+  }
+}
+
+/**
+ * Excepción para errores de configuración
+ */
+export class ConfigurationException extends AppException {
+  constructor(
+    message: string = 'Error en la configuración de la aplicación',
+    code: string = 'CONFIG_ERROR'
+  ) {
+    super(message, code);
+  }
+}
+
+/**
+ * Excepción para errores de datos/business logic
+ */
+export class BusinessLogicException extends AppException {
+  constructor(message: string, code: string = 'BUSINESS_LOGIC_ERROR') {
+    super(message, code);
+  }
+}

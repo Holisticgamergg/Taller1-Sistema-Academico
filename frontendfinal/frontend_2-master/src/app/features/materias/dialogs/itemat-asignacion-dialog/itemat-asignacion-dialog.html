@@ -1,0 +1,126 @@
+<div class="p-4 w-full flex flex-col items-center justify-center bg-white">
+  <div class="mb-3 text-center w-full max-w-3xl">
+    <h1 class="text-2xl font-extrabold text-[#0A1C2C]">Asignar Item a Materia</h1>
+    <span class="text-xs text-gray-500">Gestión {{ gestionActual }}</span>
+  </div>
+
+  <!-- Indicador de Ponderación Total - Compacto -->
+  <div class="w-full max-w-3xl mb-3">
+    <div class="bg-gray-50 border rounded-lg p-2 flex items-center gap-4">
+      <div class="flex-1">
+        <div class="flex justify-between items-center text-xs mb-1">
+          <span class="font-medium text-gray-600">Ponderación activos ({{ gestionActual }}):</span>
+          <span class="font-bold" [class.text-green-600]="saldoDisponible() > 0" [class.text-red-600]="saldoDisponible() <= 0">
+            {{ totalAcumulado() }}% | Disponible: {{ saldoDisponible() }}%
+          </span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            class="h-2 rounded-full transition-all duration-300"
+            [class.bg-green-500]="totalAcumulado() < 80"
+            [class.bg-yellow-500]="totalAcumulado() >= 80 && totalAcumulado() < 100"
+            [class.bg-red-500]="totalAcumulado() >= 100"
+            [style.width.%]="totalAcumulado()">
+          </div>
+        </div>
+      </div>
+      @if(saldoDisponible() <= 0) {
+        <span class="text-xs text-red-600 font-semibold">⚠️ Límite alcanzado</span>
+      }
+    </div>
+  </div>
+
+  <div class="w-full max-w-3xl bg-white">
+    @if(isLoading()) {
+      <div class="flex justify-center py-6">
+        <span class="loading loading-spinner loading-md text-primary"></span>
+      </div>
+    } @else if(saldoDisponible() <= 0) {
+      <div class="alert alert-error shadow-sm py-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-sm">Ponderación al 100%. No se pueden asignar más items.</span>
+      </div>
+    } @else if(items().length === 0) {
+      <div class="alert alert-warning shadow-sm py-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span class="text-sm">No hay items activos disponibles</span>
+      </div>
+    } @else {
+      <div class="mb-3 space-y-1">
+        <label for="ponderacion" class="block text-sm font-medium text-gray-700">
+          Ponderación (%) <span class="text-gray-400 text-xs">- Máx: {{ saldoDisponible() }}%</span>
+        </label>
+        <input 
+          type="number" 
+          id="ponderacion"
+          [ngModel]="ponderacion()"
+          (ngModelChange)="actualizarPonderacion($event)"
+          min="1" 
+          [max]="saldoDisponible()"
+          class="input input-sm w-full"
+          [class.input-error]="errorPonderacion()"
+          placeholder="Máx. {{ saldoDisponible() }}%"
+        />
+        @if(errorPonderacion()) {
+          <span class="text-xs text-red-600">{{ errorPonderacion() }}</span>
+        }
+      </div>
+
+      <div class="space-y-2 max-h-48 overflow-y-auto px-1">
+        @for(item of items(); track item.codi) {
+          <div 
+            class="border rounded-lg p-2 hover:bg-gray-50 transition-colors cursor-pointer"
+            [class.border-blue-500]="selectedItem() === item.codi"
+            [class.bg-blue-50]="selectedItem() === item.codi"
+            (click)="selectItem(item.codi)"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3 flex-1">
+                <input 
+                  type="radio" 
+                  name="item"
+                  class="radio radio-primary radio-sm"
+                  [checked]="selectedItem() === item.codi"
+                  (click)="$event.stopPropagation()"
+                />
+                <div class="flex flex-col">
+                  <span class="font-semibold text-sm text-[#0A1C2C]">{{ item.nombre }}</span>
+                  <span class="text-xs text-gray-500">Código: {{ item.codi }}</span>
+                </div>
+              </div>
+              <span 
+                class="badge badge-xs"
+                [class.badge-success]="item.estado === 1"
+                [class.badge-error]="item.estado !== 1"
+              >
+                {{ item.estado === 1 ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="flex flex-row justify-center gap-10 pt-4 border-t border-gray-200 mt-4">
+      <button 
+        type="button"
+        (click)="cancelar()" 
+        class="btn btn-sm btn-error text-white font-medium"
+      >
+        Cancelar
+      </button>
+      <button 
+        type="button"
+        (click)="asignar()" 
+        [disabled]="!puedeAsignar()"
+        class="btn btn-sm bg-[#007A5E] hover:bg-[#00624b] text-white font-medium disabled:opacity-50"
+      >
+        Asignar
+      </button>
+    </div>
+  </div>
+</div>

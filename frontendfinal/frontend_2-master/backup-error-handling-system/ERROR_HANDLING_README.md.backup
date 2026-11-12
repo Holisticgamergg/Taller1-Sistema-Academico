@@ -1,0 +1,428 @@
+# Sistema de Manejo de Excepciones
+
+## 📋 Descripción
+
+Este sistema proporciona un manejo robusto y centralizado de errores y excepciones en la aplicación Angular. Incluye excepciones personalizadas, un servicio global de manejo de errores, y un interceptor HTTP.
+
+## 🗂️ Estructura de Archivos
+
+```
+src/app/core/
+├── exceptions/
+│   └── custom-exceptions.ts          # Todas las excepciones personalizadas
+├── services/
+│   └── global-error-handler.service.ts   # Servicio de manejo de errores
+└── interceptors/
+    └── error.interceptor.ts          # Interceptor HTTP de errores
+```
+
+## 🎯 Tipos de Excepciones
+
+### 1. **ApiException**
+Para errores relacionados con llamadas a API.
+```typescript
+throw new ApiException('Error al obtener datos', 500, '/api/users');
+```
+
+### 2. **AuthenticationException**
+Para errores de autenticación (login, sesión expirada).
+```typescript
+throw new AuthenticationException('Sesión expirada');
+```
+
+### 3. **AuthorizationException**
+Para errores de permisos.
+```typescript
+throw new AuthorizationException('No tiene permisos para esta acción');
+```
+
+### 4. **ValidationException**
+Para errores de validación de formularios.
+```typescript
+throw new ValidationException('Datos inválidos', {
+  email: ['El email es requerido', 'El email no es válido'],
+  password: ['La contraseña debe tener al menos 8 caracteres']
+});
+```
+
+### 5. **ComponentLoadException**
+Para errores al cargar componentes o módulos.
+```typescript
+throw new ComponentLoadException('Error al cargar formulario', 'LoginFormComponent');
+```
+
+### 6. **NetworkException**
+Para errores de conectividad.
+```typescript
+throw new NetworkException('Sin conexión a internet');
+```
+
+### 7. **NotFoundException**
+Para recursos no encontrados.
+```typescript
+throw new NotFoundException('Usuario no encontrado', 'Usuario', 123);
+```
+
+### 8. **ConflictException**
+Para conflictos de datos (duplicados, etc.).
+```typescript
+throw new ConflictException('El email ya está registrado');
+```
+
+### 9. **ServerException**
+Para errores del servidor (500, 502, 503).
+```typescript
+throw new ServerException('Error interno del servidor');
+```
+
+### 10. **TimeoutException**
+Para operaciones que exceden tiempo de espera.
+```typescript
+throw new TimeoutException('Operación excedió tiempo límite', 30000);
+```
+
+### 11. **ConfigurationException**
+Para errores de configuración.
+```typescript
+throw new ConfigurationException('API URL no configurada');
+```
+
+### 12. **BusinessLogicException**
+Para errores de lógica de negocio.
+```typescript
+throw new BusinessLogicException('No puede eliminar un usuario activo');
+```
+
+## 🚀 Configuración Inicial
+
+### 1. Registrar el interceptor de errores
+
+En `app.config.ts`:
+
+```typescript
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { authTokenInterceptor } from './core/interceptors/auth-token';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideHttpClient(
+      withInterceptors([
+        authTokenInterceptor,
+        errorInterceptor  // ← Agregar el interceptor de errores
+      ])
+    ),
+    // ... otros providers
+  ]
+};
+```
+
+### 2. Agregar estilos para el snackbar de error
+
+En `styles.css`:
+
+```css
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.error-snackbar .mat-mdc-snack-bar-label {
+  color: white !important;
+}
+
+.error-snackbar .mat-mdc-button {
+  color: white !important;
+}
+```
+
+## 📖 Uso en Servicios
+
+### Ejemplo básico en un servicio HTTP:
+
+```typescript
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, catchError, throwError } from 'rxjs';
+import { GlobalErrorHandlerService } from '../../core/services/global-error-handler.service';
+
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private http = inject(HttpClient);
+  private errorHandler = inject(GlobalErrorHandlerService);
+  private apiUrl = 'https://api.example.com';
+
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users`).pipe(
+      catchError((error) => {
+        const exception = this.errorHandler.createExceptionFromHttpError(
+          error,
+          `${this.apiUrl}/users`
+        );
+        this.errorHandler.handleError(exception);
+        return throwError(() => exception);
+      })
+    );
+  }
+
+  createUser(user: User): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/users`, user).pipe(
+      catchError((error) => {
+        const exception = this.errorHandler.createExceptionFromHttpError(error);
+        this.errorHandler.handleError(exception);
+        return throwError(() => exception);
+      })
+    );
+  }
+}
+```
+
+### Con el interceptor configurado:
+
+Si tienes el interceptor configurado, las llamadas HTTP ya manejan errores automáticamente:
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private http = inject(HttpClient);
+
+  getUsers(): Observable<User[]> {
+    // Los errores son manejados automáticamente por el interceptor
+    return this.http.get<User[]>(`${this.apiUrl}/users`);
+  }
+
+  createUser(user: User): Observable<User> {
+    // Los errores son manejados automáticamente
+    return this.http.post<User>(`${this.apiUrl}/users`, user);
+  }
+}
+```
+
+## 📝 Uso en Componentes
+
+### Manejo de errores de formulario:
+
+```typescript
+import { Component, inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { GlobalErrorHandlerService } from '../../core/services/global-error-handler.service';
+import { ValidationException } from '../../core/exceptions/custom-exceptions';
+
+@Component({
+  selector: 'app-register-form',
+  templateUrl: './register-form.html'
+})
+export class RegisterFormComponent {
+  private fb = inject(FormBuilder);
+  private errorHandler = inject(GlobalErrorHandlerService);
+  
+  form: FormGroup = this.fb.group({
+    name: ['', [Validators.required, Validators.minLength(3)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(8)]]
+  });
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      const errors = this.getFormErrors();
+      const exception = new ValidationException(
+        'Por favor, corrija los errores en el formulario',
+        errors
+      );
+      this.errorHandler.handleError(exception);
+      return;
+    }
+
+    // Procesar el formulario...
+  }
+
+  private getFormErrors(): { [key: string]: string[] } {
+    const errors: { [key: string]: string[] } = {};
+    
+    Object.keys(this.form.controls).forEach(key => {
+      const control = this.form.get(key);
+      if (control && control.errors) {
+        errors[key] = [];
+        
+        if (control.errors['required']) {
+          errors[key].push(`${key} es requerido`);
+        }
+        if (control.errors['minlength']) {
+          errors[key].push(`${key} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`);
+        }
+        if (control.errors['email']) {
+          errors[key].push(`${key} debe ser un email válido`);
+        }
+      }
+    });
+    
+    return errors;
+  }
+}
+```
+
+### Manejo de errores de carga de componente:
+
+```typescript
+import { Component, OnInit, inject } from '@angular/core';
+import { GlobalErrorHandlerService } from '../../core/services/global-error-handler.service';
+import { ComponentLoadException } from '../../core/exceptions/custom-exceptions';
+
+@Component({
+  selector: 'app-user-list',
+  templateUrl: './user-list.html'
+})
+export class UserListComponent implements OnInit {
+  private errorHandler = inject(GlobalErrorHandlerService);
+  private userService = inject(UserService);
+  
+  users: User[] = [];
+  isLoading = true;
+
+  ngOnInit(): void {
+    try {
+      this.loadUsers();
+    } catch (error) {
+      const exception = new ComponentLoadException(
+        'Error al inicializar el componente de usuarios',
+        'UserListComponent'
+      );
+      this.errorHandler.handleError(exception);
+      this.isLoading = false;
+    }
+  }
+
+  loadUsers(): void {
+    this.userService.getUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        // El error ya fue manejado por el interceptor
+        this.isLoading = false;
+      }
+    });
+  }
+}
+```
+
+## 🔧 Configuración Personalizada
+
+Puedes personalizar el comportamiento del manejo de errores:
+
+```typescript
+this.errorHandler.handleError(error, {
+  showSnackbar: true,      // Mostrar mensaje al usuario
+  duration: 5000,          // Duración del mensaje (ms)
+  logToConsole: true,      // Log en consola
+  logToServer: false       // Enviar al servidor (implementar)
+});
+```
+
+## 🎨 Manejo en Diálogos de Material
+
+```typescript
+import { Component, inject } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
+import { GlobalErrorHandlerService } from '../../core/services/global-error-handler.service';
+import { ValidationException } from '../../core/exceptions/custom-exceptions';
+
+@Component({
+  selector: 'app-user-dialog',
+  templateUrl: './user-dialog.html'
+})
+export class UserDialogComponent {
+  private dialogRef = inject(MatDialogRef<UserDialogComponent>);
+  private errorHandler = inject(GlobalErrorHandlerService);
+  private userService = inject(UserService);
+
+  onSave(formData: any): void {
+    if (!this.isValid(formData)) {
+      this.errorHandler.handleError(
+        new ValidationException('Complete todos los campos requeridos'),
+        { duration: 3000 }
+      );
+      return;
+    }
+
+    this.userService.createUser(formData).subscribe({
+      next: () => {
+        this.dialogRef.close(true);
+      },
+      error: () => {
+        // Error manejado automáticamente
+        // Opcionalmente cerrar el diálogo
+      }
+    });
+  }
+}
+```
+
+## 🔍 Códigos de Error
+
+Cada excepción tiene un código único:
+- `API_ERROR`: Errores de API
+- `AUTH_ERROR`: Errores de autenticación
+- `AUTHORIZATION_ERROR`: Errores de autorización
+- `VALIDATION_ERROR`: Errores de validación
+- `COMPONENT_LOAD_ERROR`: Errores de carga
+- `NETWORK_ERROR`: Errores de red
+- `NOT_FOUND_ERROR`: Recurso no encontrado
+- `CONFLICT_ERROR`: Conflicto de datos
+- `SERVER_ERROR`: Error del servidor
+- `TIMEOUT_ERROR`: Timeout
+- `CONFIG_ERROR`: Error de configuración
+- `BUSINESS_LOGIC_ERROR`: Error de lógica de negocio
+
+## 📊 Logging al Servidor
+
+Para implementar el logging al servidor, edita el método `logToServer` en `global-error-handler.service.ts`:
+
+```typescript
+private logToServer(error: any, logMessage: string): void {
+  this.http.post('/api/logs', {
+    message: logMessage,
+    stack: error?.stack,
+    timestamp: new Date(),
+    userAgent: navigator.userAgent,
+    url: window.location.href
+  }).subscribe({
+    error: (err) => console.error('Error al enviar log al servidor', err)
+  });
+}
+```
+
+## ✅ Mejores Prácticas
+
+1. **Usa el interceptor** para manejo automático de errores HTTP
+2. **Valida formularios** antes de enviar al servidor
+3. **Maneja errores de carga** en `ngOnInit` y constructores
+4. **Proporciona mensajes claros** al usuario
+5. **Loguea errores** para debugging y monitoreo
+6. **No muestres información sensible** en mensajes de error
+7. **Usa excepciones específicas** en lugar de genéricas
+
+## 🐛 Debugging
+
+Para ver todos los logs de error en consola:
+
+```typescript
+// En app.config.ts o donde configures el servicio
+this.errorHandler.handleError(error, {
+  logToConsole: true,
+  showSnackbar: true
+});
+```
+
+## 🔗 Integración con Servicios Existentes
+
+Para actualizar tus servicios existentes, simplemente importa el `GlobalErrorHandlerService` y usa los ejemplos anteriores. El archivo `comunication-service-with-error-handling.example.ts` muestra cómo actualizar tu servicio actual.
+
+## 📞 Soporte
+
+Para más información o problemas, revisa la documentación de Angular sobre manejo de errores:
+- [Angular Error Handling](https://angular.io/guide/http#error-handling)
+- [RxJS Error Handling](https://rxjs.dev/guide/operators#error-handling-operators)

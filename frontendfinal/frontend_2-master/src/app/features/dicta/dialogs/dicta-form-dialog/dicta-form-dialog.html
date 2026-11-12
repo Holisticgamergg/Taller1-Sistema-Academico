@@ -1,0 +1,105 @@
+<div class="p-8 w-full flex flex-col items-center justify-center bg-white">
+  <div class="mb-6 text-center w-full max-w-2xl">
+    <h1 class="text-3xl font-extrabold text-[#0A1C2C]">
+      {{ isEditing ? 'Modificar Asignación' : 'Nueva Asignación' }}
+    </h1>
+  </div>
+
+  <form [formGroup]="dictaForm" (ngSubmit)="onSubmit()" class="w-full max-w-2xl bg-white">
+    <!-- Clase (Nivel - Materia - Paralelo) -->
+    <div class="space-y-2 mb-6">
+      <label for="clase" class="block text-sm font-medium text-gray-700">
+        Clase (Nivel - Materia - Paralelo) *
+      </label>
+      <select
+        id="clase"
+        formControlName="clase"
+        class="select select-bordered bg-white text-gray-800 border-gray-300 w-full"
+        [disabled]="isEditing"
+      >
+        <option value="" disabled>Seleccione una clase</option>
+        @for (clase of clasesDisponibles(); track clase.id) {
+          <option [value]="clase.id">
+            {{ clase.displayText }}
+          </option>
+        }
+      </select>
+      @if(dictaForm.get('clase')?.invalid && dictaForm.get('clase')?.touched) {
+        <span class="text-xs text-red-600">La clase es requerida</span>
+      }
+      @if(isLoadingClases()) {
+        <span class="text-xs text-blue-600">Cargando clases disponibles...</span>
+      }
+    </div>
+
+    <!-- Profesor -->
+   <div class="space-y-2 mb-6">
+  <label for="login" class="block text-sm font-medium text-gray-700">Profesor *</label>
+  <select
+    id="login"
+    formControlName="login"
+    class="select select-bordered bg-white text-gray-800 border-gray-300 w-full"
+  >
+    <option value="" disabled>Seleccione un profesor</option>
+
+    @for (profesor of profesores(); track $index) {
+      
+      @if(profesor.user && profesor.user.login) { 
+        <option [value]="profesor.user.login">
+          {{ profesor.nombre }} {{ profesor.ap }} {{ profesor.am }}
+        </option>
+      }
+    }
+  </select>
+  
+  @if(dictaForm.get('login')?.invalid && dictaForm.get('login')?.touched) {
+    <span class="text-xs text-red-600">El profesor es requerido</span>
+  }
+</div>
+
+    <!-- Botones -->
+    <div class="flex flex-row justify-center gap-20 pt-4 border-t border-gray-200 mt-6">
+      <button type="button" (click)="onCancel()" class="btn btn-error text-white font-medium">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        [disabled]="dictaForm.invalid || isLoading()"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium"
+      >
+        {{ isEditing ? 'Actualizar' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal de Confirmación -->
+@if(showConfirmModal()) {
+  <dialog open class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box text-center bg-white">
+      <h3 class="text-lg font-bold text-[#0A1C2C]">
+        {{ isEditing ? '¿Confirmar modificación?' : '¿Confirmar nueva asignación?' }}
+      </h3>
+      <p class="py-4 text-gray-700">
+        @if(isEditing) {
+          Se modificará la asignación de <strong>{{ getClaseTexto(dictaForm.value.clase) }}</strong>
+          al profesor <strong>{{ getNombreProfesor(dictaForm.value.login) }}</strong>.
+        } @else {
+          Se asignará <strong>{{ getClaseTexto(dictaForm.value.clase) }}</strong>
+          al profesor <strong>{{ getNombreProfesor(dictaForm.value.login) }}</strong>.
+        }
+      </p>
+
+      <div class="modal-action flex justify-center">
+        <div class="flex gap-4">
+          <button type="button" class="btn btn-error text-white font-medium" (click)="onCancelConfirm()">
+            Cancelar
+          </button>
+          <button type="button" class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium" (click)="onConfirm()">
+            Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+}

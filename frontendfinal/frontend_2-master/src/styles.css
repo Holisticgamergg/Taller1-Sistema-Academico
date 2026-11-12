@@ -1,0 +1,204 @@
+/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+@plugin "daisyui";
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Estilos para mejorar legibilidad en componentes con fondo de color */
+.btn-primary,
+.btn-secondary,
+.btn-accent,
+.btn-info,
+.btn-success,
+.btn-warning,
+.btn-error,
+.bg-primary,
+.bg-secondary,
+.bg-accent,
+.bg-info,
+.bg-success,
+.bg-blue-500,
+.bg-blue-600,
+.bg-sky-500,
+.bg-sky-600,
+.bg-indigo-500,
+.bg-indigo-600 {
+  color: white !important;
+}
+
+/* Asegurar que inputs, selects y textareas dentro de forms tengan buen contraste */
+.input,
+.select,
+.textarea {
+  color: inherit;
+}
+
+/* Texto blanco para badges y alerts con colores */
+.badge-primary,
+.badge-secondary,
+.badge-accent,
+.badge-info,
+.badge-success,
+.badge-warning,
+.badge-error,
+.alert-info,
+.alert-success,
+.alert-warning,
+.alert-error {
+  color: white !important;
+}
+
+/* Asegurar que los iconos en botones de color también sean blancos */
+.btn-primary mat-icon,
+.btn-secondary mat-icon,
+.btn-accent mat-icon,
+.btn-info mat-icon,
+.btn-success mat-icon,
+.btn-warning mat-icon,
+.btn-error mat-icon {
+  color: white !important;
+}
+
+/* Texto legible en componentes de Material con fondos de color */
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-raised-button.mat-accent,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-unelevated-button.mat-accent,
+.mat-mdc-fab.mat-primary,
+.mat-mdc-fab.mat-accent,
+.mat-mdc-mini-fab.mat-primary,
+.mat-mdc-mini-fab.mat-accent {
+  color: white !important;
+}
+
+.mat-mdc-raised-button.mat-primary mat-icon,
+.mat-mdc-raised-button.mat-accent mat-icon,
+.mat-mdc-unelevated-button.mat-primary mat-icon,
+.mat-mdc-unelevated-button.mat-accent mat-icon {
+  color: white !important;
+}
+
+/* Tabs de Material con mejor contraste */
+.mat-mdc-tab.mat-mdc-tab-active {
+  color: var(--mat-sys-primary) !important;
+}
+
+/* Asegurar contraste en todos los fondos oscuros de Tailwind */
+.bg-gray-700,
+.bg-gray-800,
+.bg-gray-900,
+.bg-slate-700,
+.bg-slate-800,
+.bg-slate-900,
+.bg-zinc-700,
+.bg-zinc-800,
+.bg-zinc-900,
+.bg-neutral-700,
+.bg-neutral-800,
+.bg-neutral-900,
+.bg-stone-700,
+.bg-stone-800,
+.bg-stone-900 {
+  color: white !important;
+}
+
+/* Botones y enlaces en fondos oscuros */
+.bg-gray-800 a,
+.bg-gray-900 a,
+.bg-slate-800 a,
+.bg-slate-900 a {
+  color: white !important;
+}
+
+/* Inputs y selects con mejor contraste */
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline-color: var(--mat-sys-primary);
+  outline-width: 2px;
+  outline-style: solid;
+}
+
+/* DaisyUI modal con mejor legibilidad */
+.modal-box {
+  background-color: white;
+  color: #1f2937; /* gray-800 */
+}
+
+/* Radio buttons y checkboxes con fondo de color */
+.form-control input[type="radio"]:checked,
+.form-control input[type="checkbox"]:checked {
+  border-color: var(--mat-sys-primary);
+  background-color: var(--mat-sys-primary);
+}
+
+/* Mejorar contraste en select options */
+select option {
+  background-color: white !important;
+  color: #1f2937 !important;
+}
+
+/* Asegurar que todos los selects tengan buen contraste */
+select,
+.select {
+  background-color: white !important;
+  color: #1f2937 !important;
+  border-color: #d1d5db !important;
+}
+
+select:focus,
+.select:focus {
+  border-color: var(--mat-sys-primary) !important;
+  outline-color: var(--mat-sys-primary) !important;
+}
+
+/* Select en toolbar y otros lugares específicos */
+#roles,
+select[name="roles"] {
+  background-color: white !important;
+  color: #1f2937 !important;
+}
+
+/* Inputs también con buen contraste */
+input,
+.input {
+  background-color: white !important;
+  color: #1f2937 !important;
+}
+
+input::placeholder,
+.input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Textarea */
+textarea,
+.textarea {
+  background-color: white !important;
+  color: #1f2937 !important;
+}
+
+/* ====== Estilos para NotificationService (MatSnackBar) ====== */
+.snackbar-error {
+  --mdc-snackbar-container-color: #ef4444 !important;
+  --mdc-snackbar-supporting-text-color: white !important;
+  --mat-snack-bar-button-color: white !important;
+}
+
+.snackbar-success {
+  --mdc-snackbar-container-color: #22c55e !important;
+  --mdc-snackbar-supporting-text-color: white !important;
+  --mat-snack-bar-button-color: white !important;
+}
+
+.snackbar-warning {
+  --mdc-snackbar-container-color: #f59e0b !important;
+  --mdc-snackbar-supporting-text-color: white !important;
+  --mat-snack-bar-button-color: white !important;
+}
+
+.snackbar-info {
+  --mdc-snackbar-container-color: #3b82f6 !important;
+  --mdc-snackbar-supporting-text-color: white !important;
+  --mat-snack-bar-button-color: white !important;
+}

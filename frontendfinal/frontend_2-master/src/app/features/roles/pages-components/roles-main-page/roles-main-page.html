@@ -1,0 +1,115 @@
+<div class="w-full bg-white shadow-md rounded-lg p-4 text-gray-700 mb-20">
+  <!-- Título arriba -->
+  <h2 class="text-lg font-semibold mb-4">Gestión Roles:</h2>
+
+  <!-- Controles en fila -->
+  <div class="flex flex-wrap items-center justify-center gap-6">
+    <!-- Filtro -->
+    <div class="flex items-center gap-2">
+      <label for="filtro" class="text-sm font-medium">Filtro:</label>
+      <input
+        type="text"
+        id="filtro"
+        placeholder="Buscar rol..."
+        class="input"
+        (keyup)="handleSearch($event)"
+      />
+    </div>
+
+    <!-- Estado -->
+    <div class="flex items-center gap-4">
+      <label class="flex items-center gap-1 text-sm">
+        <input
+          type="radio"
+          name="estado"
+          value="1"
+          class="accent-blue-500"
+          (change)="handleStateChange($event)"
+        />
+        Activos
+      </label>
+      <label class="flex items-center gap-1 text-sm">
+        <input
+          type="radio"
+          name="estado"
+          value="0"
+          class="accent-blue-500"
+          (change)="handleStateChange($event)"
+        />
+        Bajas
+      </label>
+      <label class="flex items-center gap-1 text-sm">
+        <input
+          type="radio"
+          name="estado"
+          value="2"
+          class="accent-blue-500"
+          checked="checked"
+          (change)="handleStateChange($event)"
+        />
+        Todos
+      </label>
+    </div>
+
+
+     <div>
+      <button
+        type="button"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium flex items-center gap-1"
+        (click)="printListaRoles()"
+        title="Imprimir lista de roles"
+      >
+        <mat-icon fontSet="material-symbols-outlined">print</mat-icon>
+        Imprimir
+      </button>
+    </div>
+
+    <!-- Botón de nuevo rol -->
+    <div>
+      <button
+        type="button"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium flex items-center gap-1"
+        (click)="openForm()"
+      >
+        <mat-icon fontSet="material-symbols-outlined">add</mat-icon>
+        Nuevo Rol
+      </button>
+    </div>
+  </div>
+  
+  <!-- Estado de carga -->
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-10">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <p class="ml-3 text-gray-600">Cargando roles...</p>
+    </div>
+  }
+  
+  <!-- Error de conexión -->
+  @if (hasError() && !isLoading()) {
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">
+      <strong class="font-bold">⚠️ Error al cargar roles</strong>
+      <span class="block sm:inline mt-2">
+        Posibles causas:
+        <ul class="list-disc ml-6 mt-2">
+          <li>El backend no está corriendo en http://localhost:8080/</li>
+          <li>No has iniciado sesión (Error 403 - Acceso denegado)</li>
+          <li>No tienes permisos para ver roles</li>
+        </ul>
+        <strong class="block mt-2">💡 Revisa la consola del navegador (F12) para más detalles</strong>
+      </span>
+    </div>
+  }
+  
+  <!-- Lista de roles -->
+  @if (!isLoading()) {
+    <div class="items-center justify-center">
+      <app-roles-list-page 
+        [roles]="roles()"
+        (onEdit)="openForm($event)"
+        (onDelete)="deleteRol($event)"
+        (onEnable)="enableRol($event)"
+      />
+    </div>
+  }
+</div>

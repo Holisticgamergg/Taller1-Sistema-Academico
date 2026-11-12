@@ -1,0 +1,109 @@
+<div class="w-full bg-white shadow-md rounded-lg p-4 text-gray-700 mb-20">
+  <!-- Título arriba -->
+  <h2 class="text-lg font-semibold mb-4">Gestión Items :</h2>
+
+  <!-- Controles en fila -->
+  <div class="flex flex-wrap items-center justify-center gap-6">
+    <!-- Filtro -->
+    <div class="flex items-center gap-2">
+      <label for="filtro" class="text-sm font-medium">Filtro:</label>
+      <input
+        type="text"
+        id="filtro"
+        placeholder="Buscar item..."
+        class="input"
+        (keyup)="handleSearch($event)"
+      />
+    </div>
+
+    <!-- Estado -->
+    <div class="flex items-center gap-4">
+      <label class="flex items-center gap-1 text-sm">
+        <input
+          type="radio"
+          name="estado"
+          value="1"
+          class="accent-blue-500"
+          [checked]="filtroEstado() === 1"
+          (change)="handleStateChange($event)"
+        />
+        Activos
+      </label>
+      <label class="flex items-center gap-1 text-sm">
+        <input
+          type="radio"
+          name="estado"
+          value="0"
+          class="accent-blue-500"
+          [checked]="filtroEstado() === 0"
+          (change)="handleStateChange($event)"
+        />
+        Bajas
+      </label>
+      <label class="flex items-center gap-1 text-sm">
+        <input
+          type="radio"
+          name="estado"
+          value="2"
+          class="accent-blue-500"
+          [checked]="filtroEstado() === 2"
+          (change)="handleStateChange($event)"
+        />
+        Todos
+      </label>
+    </div>
+
+
+    <button
+        type="button"
+        (click)="printListaItems()"
+        title="Imprimir listado actual (B18)"
+        class="btn bg-white hover:bg-gray-100 text-[#0A1C2C] border border-gray-300 font-medium flex items-center gap-2 px-4 shadow-sm"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
+        </svg>
+        Imprimir
+      </button>
+
+    <!-- Botón de nuevo item -->
+    <div>
+      <button
+        type="button"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium flex items-center gap-1"
+        (click)="openForm()"
+      >
+        <mat-icon fontSet="material-symbols-outlined">add</mat-icon>
+        Nuevo Item
+      </button>
+    </div>
+  </div>
+  
+  <!-- Estado de carga -->
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-10">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <p class="ml-3 text-gray-600">Cargando items...</p>
+    </div>
+  }
+  
+  <!-- Error de conexión -->
+  @if (hasError() && !isLoading()) {
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4" role="alert">
+      <strong class="font-bold">Error de conexión!</strong>
+      <span class="block sm:inline"> No se pudo conectar con el servidor. Verifica que el backend esté corriendo en http://localhost:8080/</span>
+    </div>
+  }
+  
+  <!-- Lista de items -->
+  @if (!isLoading()) {
+    <div class="items-center justify-center">
+      <app-items-list-page
+        [items]="items()"
+        (onEdit)="openForm($event)"
+        (onDelete)="deleteItem($event)"
+        (onEnable)="enableItem($event)"
+      />
+    </div>
+  }
+</div>

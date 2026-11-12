@@ -1,0 +1,9 @@
+<div class="mat-elevation-z8 overflow-auto rounded-lg mt-10">
+  <app-table
+    [data]="paralelos()"
+    [columns]="columns()"
+    (onEdit)="onEdit.emit($event)"
+    (onDelete)="onDelete.emit($event)"
+    (onEnable)="onEnable.emit($event)"
+  ></app-table>
+</div>

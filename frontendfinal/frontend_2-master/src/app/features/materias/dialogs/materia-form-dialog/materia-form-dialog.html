@@ -1,0 +1,82 @@
+<div class="p-8 w-full flex flex-col items-center justify-center bg-white">
+  <div class="mb-6 text-center w-full max-w-2xl">
+    <h1 class="text-3xl font-extrabold text-[#0A1C2C]">{{ isEditing ? 'Editar Materia' : 'Nueva Materia' }}</h1>
+  </div>
+
+  <form [formGroup]="materiaForm" class="w-full max-w-2xl bg-white">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div class="space-y-2">
+        <label for="codmat" class="block text-sm font-medium text-gray-700">Código Materia (Sigla)</label>
+        <input
+          type="text"
+          id="codmat"
+          formControlName="codmat"
+          class="input w-full"
+          placeholder="Ej: MAT-101"
+        />
+        @if (materiaForm.get('codmat')?.hasError('required') && materiaForm.get('codmat')?.touched) {
+          <span class="text-xs text-red-600">El código es requerido</span>
+        }
+        @if (codigoHaCambiado) {
+          <div class="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
+            <span class="text-xs text-amber-700 font-medium">
+              ⚠️ El código cambiará de "{{ data.materia?.codmat }}" a "{{ materiaForm.get('codmat')?.value }}". 
+              Se actualizarán todas las referencias (asignaciones, inscripciones, etc.)
+            </span>
+          </div>
+        }
+      </div>
+
+      <div class="space-y-2">
+        <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+        <input
+          type="text"
+          id="nombre"
+          formControlName="nombre"
+          class="input w-full"
+          placeholder="Ej: Matemáticas"
+        />
+        @if (materiaForm.get('nombre')?.hasError('required') && materiaForm.get('nombre')?.touched) {
+          <span class="text-xs text-red-600">El nombre es requerido</span>
+        }
+      </div>
+
+      <div class="space-y-2 md:col-span-2">
+        <label for="codn" class="block text-sm font-medium text-gray-700">Nivel</label>
+        <select id="codn" formControlName="codn" class="select select-bordered bg-white text-gray-800 border-gray-300 w-full">
+          <option [value]="null" disabled class="bg-white text-gray-800">Seleccione un nivel</option>
+          @for (nivel of niveles(); track nivel.codn) {
+            <option [value]="nivel.codn" class="bg-white text-gray-800">{{ nivel.nombre }}</option>
+          }
+        </select>
+        @if (materiaForm.get('codn')?.hasError('required') && materiaForm.get('codn')?.touched) {
+          <span class="text-xs text-red-600">El nivel es requerido</span>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-row justify-center gap-20 pt-4 border-t border-gray-200 mt-6">
+      <button 
+        type="button" 
+        (click)="onCancel()" 
+        class="btn btn-error text-white font-medium"
+        [disabled]="isLoading()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="!materiaForm.valid || isLoading()"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium"
+      >
+        @if (isLoading()) {
+          <span class="loading loading-spinner loading-sm"></span>
+          Guardando...
+        } @else {
+          {{ isEditing ? (codigoHaCambiado ? 'Actualizar Código' : 'Actualizar') : 'Crear' }}
+        }
+      </button>
+    </div>
+  </form>
+</div>

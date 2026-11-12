@@ -1,0 +1,73 @@
+<div class="p-8 w-full flex flex-col items-center justify-center bg-white">
+  <div class="mb-6 text-center w-full max-w-3xl">
+    <h1 class="text-3xl font-extrabold text-[#0A1C2C]">Asignar Paralelo a Materia</h1>
+    <p class="text-sm text-gray-500 mt-2">Selecciona un paralelo activo para asignar</p>
+  </div>
+
+  <div class="w-full max-w-3xl bg-white">
+    @if(isLoading()) {
+      <div class="flex justify-center py-12">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    } @else if(paralelos().length === 0) {
+      <div class="alert alert-warning shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>No hay paralelos activos disponibles para asignar</span>
+      </div>
+    } @else {
+      <div class="space-y-3 max-h-96 overflow-y-auto px-2">
+        @for(paralelo of paralelos(); track paralelo.codpar) {
+          <div 
+            class="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+            [class.border-blue-500]="selectedParalelo() === paralelo.codpar"
+            [class.bg-blue-50]="selectedParalelo() === paralelo.codpar"
+            (click)="selectParalelo(paralelo.codpar)"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4 flex-1">
+                <input 
+                  type="radio" 
+                  name="paralelo"
+                  class="radio radio-primary"
+                  [checked]="selectedParalelo() === paralelo.codpar"
+                  (click)="$event.stopPropagation()"
+                />
+                <div class="flex flex-col">
+                  <span class="font-semibold text-[#0A1C2C]">{{ paralelo.nombre }}</span>
+                  <span class="text-sm text-gray-500">Código: {{ paralelo.codpar }}</span>
+                </div>
+              </div>
+              <span 
+                class="badge badge-sm"
+                [class.badge-success]="paralelo.estado === 1"
+                [class.badge-error]="paralelo.estado !== 1"
+              >
+                {{ paralelo.estado === 1 ? 'Activo' : 'Inactivo' }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="flex flex-row justify-center gap-20 pt-6 border-t border-gray-200 mt-6">
+      <button 
+        type="button"
+        (click)="cancelar()" 
+        class="btn btn-error text-white font-medium"
+      >
+        Cancelar
+      </button>
+      <button 
+        type="button"
+        (click)="asignar()" 
+        [disabled]="!selectedParalelo() || isLoading()"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium"
+      >
+        Asignar
+      </button>
+    </div>
+  </div>
+</div>

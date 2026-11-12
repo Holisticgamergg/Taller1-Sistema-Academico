@@ -1,0 +1,9 @@
+<div class="mat-elevation-z8 overflow-auto rounded-lg mt-10">
+  <app-table
+    [data]="asignaciones()"
+    [columns]="columns()"
+    (onEdit)="edit($any($event))"
+    (onDelete)="delete($any($event))"
+    (onEnable)="enable($any($event))"
+  ></app-table>
+</div>

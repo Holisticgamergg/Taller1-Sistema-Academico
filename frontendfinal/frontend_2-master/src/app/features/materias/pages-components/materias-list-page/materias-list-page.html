@@ -1,0 +1,13 @@
+<div class="mat-elevation-z8 overflow-auto rounded-lg mt-10">
+  <app-table
+    [data]="materias()"
+    [columns]="columns()"
+    [materiaSeleccionadaId]="materiaSeleccionadaId()"
+    [vistaActual]="vistaActual()"
+    (onEdit)="onEdit.emit($event)"
+    (onDelete)="onDelete.emit($event)"
+    (onEnable)="onEnable.emit($event)"
+    (onParalelos)="onParalelos.emit($event)"
+    (onItems)="onItems.emit($event)"
+  ></app-table>
+</div>

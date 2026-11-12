@@ -1,0 +1,289 @@
+# Guía de Integración del Sistema de Excepciones
+
+## 🔧 Pasos para Integrar el Sistema de Excepciones
+
+### 1. Actualizar app.config.ts
+
+Agrega el interceptor de errores a tu configuración de aplicación:
+
+```typescript
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import { AuthInterceptor } from './core/interceptors/auth-token';
+import { errorInterceptor } from './core/interceptors/error.interceptor'; // ← AGREGAR
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+    provideHttpClient(
+      withFetch(), 
+      withInterceptors([
+        AuthInterceptor,
+        errorInterceptor,  // ← AGREGAR el interceptor de errores
+      ])
+    )
+  ]
+};
+```
+
+### 2. Agregar Angular Material (si no está instalado)
+
+El servicio de manejo de errores usa MatSnackBar de Angular Material. Si no lo tienes instalado:
+
+```powershell
+npm install @angular/material @angular/cdk
+```
+
+Luego importa los estilos en `styles.css`:
+
+```css
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* Estilos personalizados para snackbar de error */
+.error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.error-snackbar .mat-mdc-snack-bar-label {
+  color: white !important;
+}
+
+.error-snackbar .mat-mdc-button {
+  color: white !important;
+}
+```
+
+### 3. Actualizar tus servicios existentes
+
+#### Opción A: Dejar que el interceptor maneje todo (Recomendado)
+
+Tu servicio `comunication-service.ts` puede permanecer simple:
+
+```typescript
+import { inject, Injectable, signal } from '@angular/core';
+import { Persona } from '../../../core/models/user-data';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../../../environments/environment.development';
+import { Observable, Subject } from 'rxjs';
+
+@Injectable({providedIn: 'root'})
+export class ComunicationService {
+    private http = inject(HttpClient);
+    private apiUrl = environment.apiUrl;
+    
+    codp = signal<number>(0);
+    selectedUser = signal<Persona | null>(null);    
+    users = signal<Persona[] | null>(null);
+    public usersListRefresh$ = new Subject<void>();
+
+    notifyUsersListRefresh() {
+        this.usersListRefresh$.next();
+    }
+
+    // Los errores son manejados automáticamente por el interceptor
+    fetchUsers(): Observable<Persona[]> {
+        return this.http.get<Persona[]>(`${this.apiUrl}api/personals`);
+    }
+
+    fetchFilteredUsers(type?: string, state?: number): Observable<Persona[]> {
+        let params = new HttpParams();
+        
+        if(type && type !== 'T') {
+            params = params.set('tipo', type);
+        }
+        if(state !== undefined && state !== 2) {
+            params = params.set('estado', state);
+        }
+        
+        return this.http.get<Persona[]>(`${this.apiUrl}api/personals/filter`, { params });
+    }
+
+    sendCodp(): number {
+        return this.codp();
+    }
+
+    sendUser(): Persona | null {
+        return this.selectedUser();
+    }
+}
+```
+
+#### Opción B: Manejo manual con validaciones adicionales
+
+Si necesitas validaciones o manejo específico:
+
+```typescript
+import { inject, Injectable, signal } from '@angular/core';
+import { Persona } from '../../../core/models/user-data';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../../../environments/environment.development';
+import { Observable, Subject, catchError, throwError } from 'rxjs';
+import { GlobalErrorHandlerService } from '../../../core/services/global-error-handler.service';
+import { NotFoundException } from '../../../core/exceptions/custom-exceptions';
+
+@Injectable({providedIn: 'root'})
+export class ComunicationService {
+    private http = inject(HttpClient);
+    private errorHandler = inject(GlobalErrorHandlerService);
+    private apiUrl = environment.apiUrl;
+    
+    codp = signal<number>(0);
+    selectedUser = signal<Persona | null>(null);    
+    users = signal<Persona[] | null>(null);
+    public usersListRefresh$ = new Subject<void>();
+
+    notifyUsersListRefresh() {
+        this.usersListRefresh$.next();
+    }
+
+    fetchUsers(): Observable<Persona[]> {
+        return this.http.get<Persona[]>(`${this.apiUrl}api/personals`);
+    }
+
+    fetchFilteredUsers(type?: string, state?: number): Observable<Persona[]> {
+        let params = new HttpParams();
+        
+        if(type && type !== 'T') {
+            params = params.set('tipo', type);
+        }
+        if(state !== undefined && state !== 2) {
+            params = params.set('estado', state);
+        }
+        
+        return this.http.get<Persona[]>(`${this.apiUrl}api/personals/filter`, { params });
+    }
+
+    // Con validación adicional
+    sendCodp(): number {
+        const codp = this.codp();
+        if (codp === 0) {
+            const error = new NotFoundException('No hay un usuario seleccionado');
+            this.errorHandler.handleError(error);
+            throw error;
+        }
+        return codp;
+    }
+
+    sendUser(): Persona | null {
+        const user = this.selectedUser();
+        if (!user) {
+            const error = new NotFoundException('No se ha seleccionado ningún usuario');
+            this.errorHandler.handleError(error);
+            return null;
+        }
+        return user;
+    }
+}
+```
+
+### 4. Usar en componentes con formularios
+
+```typescript
+import { Component, inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { GlobalErrorHandlerService } from '../../core/services/global-error-handler.service';
+import { ValidationException } from '../../core/exceptions/custom-exceptions';
+
+export class MyFormComponent {
+  private fb = inject(FormBuilder);
+  private errorHandler = inject(GlobalErrorHandlerService);
+  
+  form: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]]
+  });
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      const exception = new ValidationException(
+        'Por favor, complete todos los campos requeridos'
+      );
+      this.errorHandler.handleError(exception);
+      return;
+    }
+    
+    // Procesar formulario...
+  }
+}
+```
+
+### 5. Usar en componentes con carga de datos
+
+```typescript
+import { Component, OnInit, inject } from '@angular/core';
+import { ComunicationService } from '../../services/comunication-service';
+
+export class UserListComponent implements OnInit {
+  private comunicationService = inject(ComunicationService);
+  
+  users: Persona[] = [];
+  isLoading = true;
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.comunicationService.fetchUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.isLoading = false;
+      },
+      error: () => {
+        // El error ya fue manejado por el interceptor
+        // Solo necesitas actualizar el estado de carga
+        this.isLoading = false;
+      }
+    });
+  }
+}
+```
+
+## 📝 Resumen de Archivos Creados
+
+1. **`src/app/core/exceptions/custom-exceptions.ts`**: Todas las excepciones personalizadas
+2. **`src/app/core/exceptions/index.ts`**: Exportaciones centralizadas
+3. **`src/app/core/services/global-error-handler.service.ts`**: Servicio de manejo de errores
+4. **`src/app/core/interceptors/error.interceptor.ts`**: Interceptor HTTP de errores
+5. **`ERROR_HANDLING_README.md`**: Documentación completa
+6. **`INTEGRATION_GUIDE.md`**: Esta guía de integración
+
+## ✅ Checklist de Integración
+
+- [ ] Agregar el interceptor en `app.config.ts`
+- [ ] Instalar Angular Material (si no está)
+- [ ] Agregar estilos del snackbar en `styles.css`
+- [ ] Revisar tus servicios HTTP existentes
+- [ ] Agregar validación en formularios
+- [ ] Probar con errores de red (desconectar internet)
+- [ ] Probar con errores de API (endpoints incorrectos)
+- [ ] Probar con formularios inválidos
+
+## 🧪 Pruebas Rápidas
+
+### Probar error de red:
+1. Desconecta internet
+2. Intenta cargar usuarios
+3. Deberías ver: "No se pudo conectar con el servidor..."
+
+### Probar error 404:
+1. Cambia temporalmente un endpoint a una URL incorrecta
+2. Deberías ver: "El recurso solicitado no existe"
+
+### Probar error de validación:
+1. Intenta enviar un formulario vacío
+2. Deberías ver: "Por favor, complete todos los campos requeridos"
+
+## 🎉 ¡Listo!
+
+Tu aplicación ahora tiene un sistema robusto de manejo de excepciones que:
+- ✅ Captura errores HTTP automáticamente
+- ✅ Muestra mensajes amigables al usuario
+- ✅ Loguea errores en consola para debugging
+- ✅ Maneja diferentes tipos de errores apropiadamente
+- ✅ Es extensible y fácil de mantener

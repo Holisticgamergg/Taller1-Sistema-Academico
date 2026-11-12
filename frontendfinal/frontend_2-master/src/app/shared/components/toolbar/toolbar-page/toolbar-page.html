@@ -1,0 +1,30 @@
+<header class="fixed top-0 w-full z-10 shadow-lg bg-white">
+  <nav class="max-w-9xl mx-auto px-4 h-24 flex items-center justify-between">
+    <!-- Logo + enlaces -->
+    <div class="flex-shrink-0 w-1/6 flex items-center gap-6">
+      <a href="#">
+        <img src="/assets/logoandalucia.png" alt="logo" class="h-20 w-auto" />
+      </a>
+      <a routerLink="/" class="font-medium text-gray-800 hover:text-gray-600">Home</a>
+      <a routerLink="/contacts" class="font-medium text-gray-800 hover:text-gray-600">Contactos</a>
+    </div>
+
+    <!-- Menú central -->
+    <div id="menu" class="w-4/6 flex justify-start space-x-6">
+      <app-toolbar-menu [selectedRole]="selectedRole()"></app-toolbar-menu>
+    </div>
+
+    <!-- Selector de roles -->
+    <div class="w-1/6 flex justify-end items-center">
+      <select name="roles" id="roles" (change)="onRoleChange($event)" class="select select-bordered bg-white text-gray-800 border-gray-300">
+        @if(user.isAuth()) {
+        <option selected [value]="0" class="bg-white text-gray-800">Roles</option>
+        @for(rol of user.roles() ; track $index) {
+        <option [value]="rol.codr" class="bg-white text-gray-800">{{ rol.nombre }}</option>
+        } } @else {
+        <option [value]="0" selected disabled class="bg-white text-gray-500">Invitado</option>
+        }
+      </select>
+    </div>
+  </nav>
+</header>

@@ -1,0 +1,26 @@
+import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { catchError, throwError, timeout } from 'rxjs';
+import { GlobalErrorHandlerService } from '../services/global-error-handler.service';
+
+/**
+ * Interceptor para manejo global de errores HTTP
+ */
+export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  const errorHandler = inject(GlobalErrorHandlerService);
+  const REQUEST_TIMEOUT = 30000; // 30 segundos
+
+  return next(req).pipe(
+    timeout(REQUEST_TIMEOUT),
+    catchError((error: HttpErrorResponse) => {
+      // Crear excepción apropiada desde el error HTTP
+      const exception = errorHandler.createExceptionFromHttpError(error, req.url);
+      
+      // Manejar el error con el servicio global
+      errorHandler.handleError(exception);
+      
+      // Re-lanzar el error para que los componentes puedan manejarlo si lo necesitan
+      return throwError(() => exception);
+    })
+  );
+};

@@ -1,0 +1,66 @@
+<div class="p-8 w-full flex flex-col items-center justify-center bg-white">
+  <div class="mb-6 text-center w-full max-w-2xl">
+    <h1 class="text-3xl font-extrabold text-[#0A1C2C]">{{ isEditMode ? 'Editar Rol' : 'Nuevo Rol' }}</h1>
+  </div>
+
+  <form [formGroup]="rolForm" class="w-full max-w-2xl bg-white">
+    <div class="space-y-2">
+      <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre del Rol</label>
+      <input
+        type="text"
+        id="nombre"
+        formControlName="nombre"
+        class="input w-full"
+        placeholder="Ej: Administrador, Docente, Estudiante"
+      />
+      @if (rolForm.get('nombre')?.invalid && rolForm.get('nombre')?.touched) {
+        @if (rolForm.get('nombre')?.errors?.['required']) {
+          <span class="text-xs text-red-600">El nombre es requerido</span>
+        }
+        @if (rolForm.get('nombre')?.errors?.['minlength']) {
+          <span class="text-xs text-red-600">El nombre debe tener al menos 3 caracteres</span>
+        }
+      }
+    </div>
+
+    <div class="flex flex-row justify-center gap-20 pt-4 border-t border-gray-200 mt-6">
+      <button type="button" (click)="close()" class="btn btn-error text-white font-medium">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        onclick="rol_modal_confirm.showModal()"
+        [disabled]="rolForm.invalid"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium"
+      >
+        {{ isEditMode ? 'Guardar Cambios' : 'Crear Rol' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal de confirmación -->
+<dialog id="rol_modal_confirm" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box text-center bg-white">
+    <h3 class="text-lg font-bold text-[#0A1C2C]">
+      {{ isEditMode ? '¿Confirmar modificación?' : '¿Confirmar creación?' }}
+    </h3>
+    <p class="py-4 text-gray-700">
+      {{ isEditMode 
+        ? 'Se modificará el rol "' + rolForm.get('nombre')?.value + '".' 
+        : 'Se creará el nuevo rol "' + rolForm.get('nombre')?.value + '".' 
+      }}
+    </p>
+
+    <div class="modal-action flex justify-center">
+      <form method="dialog" class="flex gap-4">
+        <button type="button" class="btn btn-error text-white font-medium">
+          Cancelar
+        </button>
+        <button type="button" class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium" (click)="submit()">
+          Confirmar
+        </button>
+      </form>
+    </div>
+  </div>
+</dialog>

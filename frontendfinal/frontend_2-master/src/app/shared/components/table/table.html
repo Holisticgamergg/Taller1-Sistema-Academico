@@ -1,0 +1,125 @@
+<table mat-table [dataSource]="dataSource" class="!border-gray-200">
+  @for (column of columns(); track column) {
+  <ng-container [matColumnDef]="column.columnDef"><!-- angular recorre el array y crea una columna por cada una -->
+    <th mat-header-cell *matHeaderCellDef class="!border-gray-200 !text-[var(--color-text-subtle)]">
+      {{ column.header }}<!-- pone el titulo a la columna -->
+    </th>
+    <td mat-cell *matCellDef="let row" class="!border-gray-200" (click)="emitData.emit(row)">
+      @switch (column.columnDef) { @case ("foto") {<!-- aqui se decide que dibujar segun el nombre de la columna (columnDef))-->
+      <div>
+        <img
+          [src]="row.foto ? row.foto : '/assets/default-user-icon.png'"
+          alt="Foto de perfil"
+          class="w-10 h-10 object-cover rounded-full border-2 border-gray-300"
+        />
+      </div>
+      } @case ("estado") {
+      <div>
+        <mat-icon fontSet="material-symbols-outlined" class="!text-[20px]">
+          {{ row.estado ? 'thumb_up' : 'thumb_down' }}
+        </mat-icon>
+      </div>
+      } @case ("m") {
+      <div>
+        <mat-icon
+          fontSet="material-symbols-outlined"
+          class="!text-[20px] cursor-pointer"
+          (click)="onEdit.emit(row)"
+          >edit</mat-icon
+        >
+      </div>
+      } @case ("b") {
+      <div>
+        <mat-icon
+          fontSet="material-symbols-outlined"
+          class="!text-[20px] cursor-pointer"
+          (click)="onDelete.emit(row)"
+          >delete</mat-icon
+        >
+      </div>
+      } @case ("h") {
+      <div>
+        <mat-icon
+          fontSet="material-symbols-outlined"
+          class="!text-[20px] cursor-pointer"
+          (click)="onEnable.emit(row)"
+          >sync</mat-icon
+        >
+      </div>
+      } @case ("v") {
+      <div>
+        <mat-icon
+          fontSet="material-symbols-outlined"
+          class="!text-[20px] cursor-pointer"
+          (click)="onView.emit(row)"
+          >print</mat-icon
+        >
+      </div>
+      } @case ("k") {
+      <div>
+        @if(row.user) {
+        <mat-icon
+          fontSet="material-symbols-outlined"
+          class="!text-[20px] cursor-pointer text-sky-500"
+          (click)="onEditData.emit(row)"
+          >lock_open</mat-icon
+        >
+        } @else {
+        <mat-icon
+          fontSet="material-symbols-outlined"
+          class="!text-[20px] cursor-pointer text-red-500"
+          (click)="onRegisterData.emit(row)"
+          >lock</mat-icon
+        >
+        }
+      </div>
+      } @case ("paralelos") {
+      <div class="flex justify-center">
+        <input 
+          type="radio" 
+          name="vistaDetalle"
+          class="radio radio-primary"
+          [checked]="materiaSeleccionadaId() === row.codmat && vistaActual() === 'PARALELOS'"
+          (change)="onParalelos.emit(row)"
+        />
+      </div>
+      } @case ("items") {
+      <div class="flex justify-center">
+        <input 
+          type="radio" 
+          name="vistaDetalle"
+          class="radio radio-primary"
+          [checked]="materiaSeleccionadaId() === row.codmat && vistaActual() === 'ITEMS'"
+          (change)="onItems.emit(row)"
+        />
+      </div>
+      } @default {
+      {{ column.cell(row) }}
+      } }
+    </td></ng-container
+  >
+<!-- permite mezclar columnas complejas y simples -->
+<!--es importante poner ! al border gray para que se aplique el estilo-->
+  }
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns" class="!border-gray-200"></tr>
+  <tr
+    mat-row
+    *matRowDef="let row; columns: displayedColumns"
+    class="!border-gray-200 !text-[var(--color-text)]"
+  ></tr>
+
+  <!-- Mensaje cuando no hay datos -->
+  <tr class="mat-row" *matNoDataRow>
+    <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+      <div class="text-center py-8 text-gray-500">
+        @if (query()) {
+          <p>No se encontraron resultados para "{{ query() }}"</p>
+        } @else {
+          <p>No hay datos para mostrar. Verifica que el servidor esté funcionando en http://localhost:8080/</p>
+        }
+      </div>
+    </td>
+  </tr>
+</table>
+<mat-paginator [pageSizeOptions]="[5, 15, 20]" aria-label="Select page of users"></mat-paginator>

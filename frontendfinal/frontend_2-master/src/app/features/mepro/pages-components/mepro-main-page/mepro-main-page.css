@@ -1,0 +1,38 @@
+/* Estilos personalizados para la página de asignación */
+
+.container {
+  max-width: 1400px;
+}
+
+/* Scroll personalizado */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Animación para items seleccionados */
+label.bg-blue-50 {
+  animation: pulse-subtle 0.3s ease-in-out;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}

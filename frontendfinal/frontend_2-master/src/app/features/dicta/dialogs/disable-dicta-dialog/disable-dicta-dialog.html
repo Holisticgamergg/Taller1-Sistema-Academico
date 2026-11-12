@@ -1,0 +1,11 @@
+<div class="p-6 bg-white text-center">
+  <h2 class="text-xl font-bold mb-4 text-[#0A1C2C]">Eliminar Asignación</h2>
+  <p class="mb-6 text-gray-700">
+    ¿Está seguro de eliminar la asignación de <strong>{{ asignacion.nombreMateria }}</strong> 
+    ({{ asignacion.nombreParalelo }}) al profesor <strong>{{ asignacion.nombreProfesor }}</strong>?
+  </p>
+  <div class="flex justify-center gap-4">
+    <button class="btn btn-error text-white font-medium" (click)="close()">Cancelar</button>
+    <button class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium" (click)="disableAsignacion()">Aceptar</button>
+  </div>
+</div>

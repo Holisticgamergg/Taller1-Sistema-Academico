@@ -1,0 +1,32 @@
+<div class="p-8 w-full flex flex-col items-center justify-center bg-white">
+  <div class="mb-6 text-center w-full max-w-2xl">
+    <h1 class="text-3xl font-extrabold text-[#0A1C2C]">{{ isEditMode ? 'Editar Menú' : 'Nuevo Menú' }}</h1>
+  </div>
+
+  <form [formGroup]="menuForm" class="w-full max-w-2xl bg-white">
+    <div class="space-y-2">
+      <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre del Menú</label>
+      <input
+        type="text"
+        id="nombre"
+        formControlName="nombre"
+        class="input w-full"
+        placeholder="Ej: Gestión Académica"
+      />
+    </div>
+
+    <div class="flex flex-row justify-center gap-20 pt-4 border-t border-gray-200 mt-6">
+      <button type="button" (click)="close()" class="btn btn-error text-white font-medium">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="!menuForm.valid"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium"
+      >
+        {{ isEditMode ? 'Actualizar' : 'Crear' }}
+      </button>
+    </div>
+  </form>
+</div>

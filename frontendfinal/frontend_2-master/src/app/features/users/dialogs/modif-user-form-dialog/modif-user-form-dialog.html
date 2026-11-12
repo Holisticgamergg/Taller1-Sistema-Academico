@@ -1,0 +1,196 @@
+<div class="p-8 w-full h-full flex flex-col items-center justify-center bg-white">
+  <div class="mb-6 text-center w-full max-w-2xl">
+    <h1 class="text-3xl font-extrabold text-[#0A1C2C]">Modificar persona</h1>
+    <p class="text-base text-gray-600 mt-2">
+      Usuario:
+      <span class="font-semibold"
+        >{{ comunication.selectedUser()?.nombre }} {{ comunication.selectedUser()?.ap }}
+        {{ comunication.selectedUser()?.am }}</span
+      >
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="w-full max-w-2xl bg-white">
+    <div class="space-y-2 mb-6">
+      <label for="cedula" class="block text-sm font-medium text-gray-700">Cédula</label>
+      <input
+        type="text"
+        id="cedula"
+        formControlName="cedula"
+        class="input w-full"
+        placeholder="Ej: 12345678"
+      />
+    </div>
+
+    <div formGroupName="persona" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      <div class="md:col-span-1">
+        <div class="space-y-2 mb-4">
+          <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+          <input
+            type="text"
+            id="nombre"
+            formControlName="nombre"
+            class="input"
+            placeholder="Ej: Juan"
+          />
+        </div>
+
+        <div class="space-y-2 mb-4">
+          <label for="ap" class="block text-sm font-medium text-gray-700">Apellido Paterno</label>
+          <input type="text" id="ap" formControlName="ap" class="input" placeholder="Ej: Pérez" />
+        </div>
+
+        <div class="space-y-2 mb-4">
+          <label for="am" class="block text-sm font-medium text-gray-700">Apellido Materno</label>
+          <input type="text" id="am" formControlName="am" class="input" placeholder="Ej: Soto" />
+        </div>
+
+        <div class="space-y-2 mb-4">
+          <label for="fnac" class="block text-sm font-medium text-gray-700">F. Nacimiento</label>
+          <input type="date" id="fnac" formControlName="fnac" class="input" />
+        </div>
+
+        <div class="space-y-2 mb-4">
+          <span class="block text-sm font-medium text-gray-700">Género</span>
+          <div class="flex flex-row gap-6">
+            <label for="m" class="flex items-center gap-1 cursor-pointer text-gray-700">
+              <input
+                type="radio"
+                id="m"
+                value="M"
+                formControlName="genero"
+                class="h-4 w-4 text-[#007A5E] border-gray-300 focus:ring-[#007A5E]"
+              />
+              Masculino
+            </label>
+            <label for="f" class="flex items-center gap-1 cursor-pointer text-gray-700">
+              <input
+                type="radio"
+                id="f"
+                value="F"
+                formControlName="genero"
+                class="h-4 w-4 text-[#007A5E] border-gray-300 focus:ring-[#007A5E]"
+              />
+              Femenino
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="md:col-span-1">
+        <div class="space-y-2 mb-4">
+          <label for="direc" class="block text-sm font-medium text-gray-700">Dirección</label>
+          <input
+            type="text"
+            id="direc"
+            formControlName="direc"
+            class="input"
+            placeholder="Ej: Calle 1, No 50"
+          />
+        </div>
+
+        <div class="space-y-2 mb-4">
+          <label for="telf" class="block text-sm font-medium text-gray-700">Teléfono</label>
+          <input
+            type="text"
+            id="telf"
+            formControlName="telf"
+            class="input"
+            placeholder="Ej: 70012345"
+          />
+        </div>
+
+        <div class="space-y-2 mb-4">
+          <label for="tipo" class="block text-sm font-medium text-gray-700">Tipo de Personal</label>
+          <select id="tipo" formControlName="tipo" class="select select-bordered bg-white text-gray-800 border-gray-300">
+            <option value="" disabled class="bg-white text-gray-800">Selecciona un tipo</option>
+            <option value="A" class="bg-white text-gray-800">Administrativo</option>
+            <option value="P" class="bg-white text-gray-800">Público</option>
+            <option value="E" class="bg-white text-gray-800">Estudiante</option>
+          </select>
+        </div>
+
+        <div class="space-y-2 mb-4">
+          <span class="block text-sm font-medium text-gray-700">Estado Civil</span>
+          <div class="flex flex-row gap-4">
+            <label for="s" class="flex items-center gap-1 cursor-pointer text-gray-700">
+              <input
+                type="radio"
+                id="s"
+                value="S"
+                formControlName="ecivil"
+                class="h-4 w-4 text-[#007A5E] border-gray-300 focus:ring-[#007A5E]"
+              />
+              Soltero
+            </label>
+            <label for="c" class="flex items-center gap-1 cursor-pointer text-gray-700">
+              <input
+                type="radio"
+                id="c"
+                value="C"
+                formControlName="ecivil"
+                class="h-4 w-4 text-[#007A5E] border-gray-300 focus:ring-[#007A5E]"
+              />
+              Casado
+            </label>
+            <label for="d" class="flex items-center gap-1 cursor-pointer text-gray-700">
+              <input
+                type="radio"
+                id="d"
+                value="D"
+                formControlName="ecivil"
+                class="h-4 w-4 text-[#007A5E] border-gray-300 focus:ring-[#007A5E]"
+              />
+              Divorciado
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-2 mb-6">
+          <label for="fileInput" class="block text-sm font-medium text-gray-700"
+            >Foto de Perfil</label
+          >
+          <input
+            type="file"
+            id="fileInput"
+            (change)="onFileSelected($event)"
+            accept="image/*"
+            class="file-input font-medium"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-row justify-center gap-20 pt-4 border-t border-gray-200 mt-4">
+      <button type="button" (click)="close()" class="btn btn-error text-white font-medium">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        onclick="my_modal_5.showModal()"
+        [disabled]="form.invalid"
+        class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium"
+      >
+        Guardar Cambios
+      </button>
+    </div>
+  </form>
+</div>
+
+<dialog id="my_modal_5" class="modal modal-bottom sm:modal-middle">
+  <div class="modal-box text-center bg-white">
+    <h3 class="text-lg font-bold text-[#0A1C2C]">¿Confirmar modificación?</h3>
+    <p class="py-4 text-gray-700">
+      Se modificarán los datos personales de <strong>{{ comunication.selectedUser()?.nombre }} {{ comunication.selectedUser()?.ap }}</strong>. 
+      Verifica que todos los datos ingresados sean correctos.
+    </p>
+
+    <div class="modal-action flex justify-center">
+      <form method="dialog" class="flex gap-4">
+        <button type="button" class="btn btn-error text-white font-medium" (click)="close()">Cancelar</button>
+        <button type="button" class="btn bg-[#007A5E] hover:bg-[#00624b] text-white font-medium" (click)="submit()">
+          Confirmar Cambios
+        </button>
+      </form>
+    </div>
+  </div>
+</dialog>

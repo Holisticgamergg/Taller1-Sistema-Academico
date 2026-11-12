@@ -1,0 +1,216 @@
+# 🧪 Pruebas del Sistema de Excepciones
+
+## Pruebas Rápidas para Verificar el Funcionamiento
+
+### 1️⃣ Prueba de Error de Red
+
+**En el navegador:**
+1. Abre las herramientas de desarrollo (F12)
+2. Ve a la pestaña "Network" o "Red"
+3. Selecciona "Offline" para simular sin conexión
+4. Intenta cargar datos de la API
+5. **Resultado esperado:** Verás un snackbar rojo con el mensaje "No se pudo conectar con el servidor. Verifique su conexión a internet."
+
+### 2️⃣ Prueba de Error 404 (No Encontrado)
+
+**Modifica temporalmente un servicio:**
+```typescript
+// En cualquier servicio que use HTTP
+fetchUsers(): Observable<Persona[]> {
+    // Cambia el endpoint a uno que no existe
+    return this.http.get<Persona[]>(`${this.apiUrl}api/usuarios-inexistentes`);
+}
+```
+
+**Resultado esperado:** Snackbar con "El recurso solicitado no existe."
+
+### 3️⃣ Prueba de Error 401 (No Autorizado)
+
+**Simula un token expirado:**
+```typescript
+// En tu componente de login, intenta acceder a un recurso protegido sin token válido
+```
+
+**Resultado esperado:** Snackbar con "Su sesión ha expirado. Por favor, inicie sesión nuevamente."
+
+### 4️⃣ Prueba de Validación de Formulario
+
+**En cualquier componente con formulario:**
+```typescript
+import { GlobalErrorHandlerService } from '../../core/services/global-error-handler.service';
+import { ValidationException } from '../../core/exceptions/custom-exceptions';
+
+onSubmit() {
+  // Forzar un error de validación
+  const exception = new ValidationException(
+    'Formulario inválido',
+    {
+      email: ['El email es requerido', 'El email debe ser válido'],
+      password: ['La contraseña debe tener al menos 8 caracteres']
+    }
+  );
+  this.errorHandler.handleError(exception);
+}
+```
+
+**Resultado esperado:** Snackbar con los mensajes de validación concatenados.
+
+### 5️⃣ Prueba de Timeout
+
+**Simula una petición lenta:**
+```typescript
+// El interceptor tiene un timeout de 30 segundos
+// Para probarlo más rápido, modifica el timeout en error.interceptor.ts:
+const REQUEST_TIMEOUT = 1000; // 1 segundo
+```
+
+**Resultado esperado:** Snackbar con "La solicitud ha excedido el tiempo de espera."
+
+## 📝 Checklist de Verificación
+
+### Configuración
+- [ ] El interceptor está registrado en `app.config.ts`
+- [ ] Angular Material está instalado
+- [ ] Los estilos del snackbar están en `styles.css`
+- [ ] No hay errores de compilación
+
+### Pruebas Funcionales
+- [ ] Error de red se muestra correctamente
+- [ ] Error 404 se muestra correctamente
+- [ ] Error 401 se muestra correctamente
+- [ ] Errores de validación se muestran correctamente
+- [ ] El snackbar tiene estilo rojo
+- [ ] El botón "Cerrar" funciona
+- [ ] Los errores se loguean en consola
+
+## 🐛 Debugging
+
+### Ver todos los logs en consola:
+Abre las herramientas de desarrollo (F12) y ve a la pestaña "Console". Deberías ver:
+```
+[API Error] Error al obtener datos - Status: 404 - Endpoint: https://api.../
+[Network Error] No se pudo conectar con el servidor
+[Validation Error] Formulario inválido - Errors: {...}
+```
+
+### Verificar que el interceptor está funcionando:
+
+1. Abre las herramientas de desarrollo
+2. Ve a "Network"
+3. Realiza una petición HTTP que falle
+4. Verifica que el error no llega sin manejar al componente
+
+### Probar manualmente en consola del navegador:
+
+```javascript
+// En la consola del navegador, puedes probar:
+// (Esto es solo para debugging, no usar en producción)
+angular.getComponent($0) // Obtén el componente del elemento seleccionado
+```
+
+## 🎨 Personalización de Mensajes
+
+### Cambiar duración del snackbar:
+```typescript
+this.errorHandler.handleError(error, {
+  duration: 3000 // 3 segundos
+});
+```
+
+### Deshabilitar el snackbar:
+```typescript
+this.errorHandler.handleError(error, {
+  showSnackbar: false,
+  logToConsole: true
+});
+```
+
+### Solo loguear sin mostrar:
+```typescript
+this.errorHandler.handleError(error, {
+  showSnackbar: false,
+  logToConsole: true,
+  logToServer: true
+});
+```
+
+## 📊 Casos de Uso Comunes
+
+### 1. Formulario de Login
+```typescript
+onLogin() {
+  if (this.loginForm.invalid) {
+    const exception = new ValidationException(
+      'Por favor, complete todos los campos'
+    );
+    this.errorHandler.handleError(exception);
+    return;
+  }
+  
+  this.authService.login(this.loginForm.value).subscribe({
+    next: () => this.router.navigate(['/dashboard']),
+    error: () => {
+      // Error manejado automáticamente
+    }
+  });
+}
+```
+
+### 2. Carga de Datos en ngOnInit
+```typescript
+ngOnInit() {
+  this.isLoading = true;
+  
+  this.userService.getUsers().subscribe({
+    next: (users) => {
+      this.users = users;
+      this.isLoading = false;
+    },
+    error: () => {
+      // Error manejado automáticamente
+      this.isLoading = false;
+    }
+  });
+}
+```
+
+### 3. Validación de Negocio
+```typescript
+deleteUser(userId: number) {
+  const user = this.users.find(u => u.id === userId);
+  
+  if (user?.estado === 'ACTIVO') {
+    const exception = new BusinessLogicException(
+      'No se puede eliminar un usuario activo'
+    );
+    this.errorHandler.handleError(exception);
+    return;
+  }
+  
+  // Proceder con eliminación...
+}
+```
+
+## ✅ Resultado Final
+
+Si todo funciona correctamente:
+1. ✅ Los errores HTTP se manejan automáticamente
+2. ✅ Se muestran mensajes amigables al usuario
+3. ✅ Los errores se loguean en consola
+4. ✅ El snackbar tiene estilo consistente
+5. ✅ La aplicación no se rompe por errores no manejados
+
+## 🚀 Próximos Pasos
+
+1. **Implementar logging al servidor**: Edita el método `logToServer` en `global-error-handler.service.ts`
+2. **Agregar más tipos de excepciones**: Si necesitas excepciones específicas para tu dominio
+3. **Internacionalización**: Traduce los mensajes de error a otros idiomas
+4. **Analytics**: Integra con Google Analytics o similar para trackear errores
+5. **Monitoreo**: Integra con Sentry, LogRocket u otra herramienta de monitoreo
+
+## 📚 Recursos Adicionales
+
+- [Documentación completa](./ERROR_HANDLING_README.md)
+- [Guía de integración](./INTEGRATION_GUIDE.md)
+- [Ejemplos de código](./src/app/shared/examples/error-handling-examples.ts)
+- [Ejemplo de servicio actualizado](./src/app/features/users/services/comunication-service-with-error-handling.example.ts)

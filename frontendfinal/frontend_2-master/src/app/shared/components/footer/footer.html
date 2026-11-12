@@ -1,0 +1,37 @@
+<footer class="fixed bottom-0 w-full shadow-lg bg-white">
+  <div class="max-w-9xl mx-auto px-4">
+    <div class="flex justify-between items-center h-20">
+      <!-- Etiqueta de usuario -->
+      <div class="flex gap-4 items-center text-sm w-3/6 text-gray-700">
+        <div class="avatar">
+          <div class="w-15 rounded-full">
+            <img
+              src="\assets\adminpfp.jpg"
+              class="rounded-full"
+            />
+          </div>
+        </div>
+        <p>{{ user.getNameUser() }}</p>
+      </div>
+
+      <!-- Copyright -->
+      <div class="text-sm w-2/6 text-gray-700 text-center">
+        <p>{{ user.getlogin() }} : {{ date() | date : 'dd/MM/yyyy' }}</p>
+      </div>
+
+      <!-- Fecha literal -->
+     <!-- <div class="text-sm w-1/6 text-gray-700 text-center">
+        {{ date() | date : 'EEEE, d\' de\' MMMM \'de\' y' }}
+      </div>
+    -->
+      <!-- logineando -->
+      <div class="w-1/6 text-right">
+        @if(user.isAuth()) {
+        <button (click)="user.logOut()" class="btn btn-error font-medium text-white">Salir</button>
+        } @else {
+        <button (click)="openDialog()" class="btn bg-[#007A5E] hover:bg-[#00624b] font-medium text-white">Ingresar</button>
+        }
+      </div>
+    </div>
+  </div>
+</footer>

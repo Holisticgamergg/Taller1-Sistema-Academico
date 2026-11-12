@@ -1,0 +1,238 @@
+import { Component, inject } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
+import { FormDialog } from '../../../../shared/components/dialogs/form-dialog/form-dialog';
+import { UserApiService } from '../../services/user-service';
+import { MediaService } from '../../services/media-service';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { RegisterPersonalRequest } from '../../models/register-request';
+import { ComunicationService } from '../../services/comunication-service';
+import { GlobalErrorHandlerService } from '../../../../core/services/global-error-handler.service';
+import { ValidationException, ComponentLoadException } from '../../../../core/exceptions/custom-exceptions';
+
+/**
+ * EJEMPLO MEJORADO: RegisterFormDialog con manejo de excepciones
+ * Este archivo muestra cómo integrar el sistema de excepciones en un diálogo existente
+ */
+@Component({
+  selector: 'app-register-form-dialog-improved',
+  imports: [ReactiveFormsModule],
+  templateUrl: './register-form-dialog.html',
+  styleUrl: './register-form-dialog.css'
+})
+export class RegisterFormDialogImproved {
+  private dialogRef = inject(MatDialogRef<FormDialog>);
+  private userService = inject(UserApiService);
+  private mediaService = inject(MediaService);
+  private comunication = inject(ComunicationService);
+  private errorHandler = inject(GlobalErrorHandlerService);
+  
+  private selectedFile: File | null = null;
+  isSubmitting = false;
+
+  form = new FormGroup({
+    cedula: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    persona: new FormGroup({
+      nombre: new FormControl('', [Validators.required, Validators.minLength(2)]),
+      ap: new FormControl('', [Validators.required, Validators.minLength(2)]),
+      am: new FormControl('', [Validators.required, Validators.minLength(2)]),
+      estado: new FormControl(1),
+      fnac: new FormControl('', Validators.required),
+      ecivil: new FormControl('', Validators.required),
+      genero: new FormControl('', Validators.required),
+      direc: new FormControl('', Validators.required),
+      telf: new FormControl('', [Validators.required, Validators.pattern(/^\d{7,15}$/)]),
+      tipo: new FormControl('', Validators.required),
+      foto: new FormControl('')
+    })
+  });
+
+  onFileSelected(event: Event) {
+    try {
+      const input = event.target as HTMLInputElement;
+      
+      if (!input.files || input.files.length === 0) {
+        this.selectedFile = null;
+        this.form.get('persona.foto')?.setValue('');
+        return;
+      }
+
+      const file = input.files[0];
+      
+      // Validar tamaño del archivo (máximo 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        const exception = new ValidationException(
+          'El archivo es demasiado grande. El tamaño máximo es 5MB.',
+          { foto: ['El archivo debe ser menor a 5MB'] }
+        );
+        this.errorHandler.handleError(exception);
+        return;
+      }
+
+      // Validar tipo de archivo
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        const exception = new ValidationException(
+          'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF).',
+          { foto: ['Debe seleccionar una imagen válida'] }
+        );
+        this.errorHandler.handleError(exception);
+        return;
+      }
+
+      this.selectedFile = file;
+      const photo = this.form.get('persona.foto');
+      if (photo) {
+        photo.setValue(file.name);
+        photo.markAsDirty();
+        photo.updateValueAndValidity();
+      }
+    } catch (error) {
+      const exception = new ComponentLoadException(
+        'Error al procesar el archivo seleccionado',
+        'RegisterFormDialog'
+      );
+      this.errorHandler.handleError(exception);
+    }
+  }
+
+  private getFormErrors(): { [key: string]: string[] } {
+    const errors: { [key: string]: string[] } = {};
+    
+    const validateControl = (controlName: string, displayName: string) => {
+      const control = this.form.get(controlName);
+      if (control && control.errors && (control.dirty || control.touched)) {
+        errors[controlName] = [];
+        
+        if (control.errors['required']) {
+          errors[controlName].push(`${displayName} es requerido`);
+        }
+        if (control.errors['minlength']) {
+          errors[controlName].push(
+            `${displayName} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`
+          );
+        }
+        if (control.errors['pattern']) {
+          errors[controlName].push(`${displayName} tiene un formato inválido`);
+        }
+      }
+    };
+
+    // Validar campos principales
+    validateControl('cedula', 'Cédula');
+    validateControl('persona.nombre', 'Nombre');
+    validateControl('persona.ap', 'Apellido Paterno');
+    validateControl('persona.am', 'Apellido Materno');
+    validateControl('persona.fnac', 'Fecha de Nacimiento');
+    validateControl('persona.ecivil', 'Estado Civil');
+    validateControl('persona.genero', 'Género');
+    validateControl('persona.direc', 'Dirección');
+    validateControl('persona.telf', 'Teléfono');
+    validateControl('persona.tipo', 'Tipo');
+
+    return errors;
+  }
+
+  private registerPerson() {
+    const registerData = this.form.value as unknown as RegisterPersonalRequest;
+    
+    this.userService.registerUser(registerData).subscribe({
+      next: (data) => {
+        console.log('Usuario registrado exitosamente', data);
+        this.comunication.notifyUsersListRefresh();
+        this.isSubmitting = false;
+        this.close();
+      },
+      error: (error) => {
+        // El error ya fue manejado por el interceptor
+        console.error('Error al registrar usuario', error);
+        this.isSubmitting = false;
+        // No cerramos el diálogo para que el usuario pueda corregir
+      }
+    });
+  }
+
+  submit() {
+    // Marcar todos los campos como tocados para mostrar errores
+    this.form.markAllAsTouched();
+    
+    // Validar formulario
+    if (this.form.invalid) {
+      const errors = this.getFormErrors();
+      const exception = new ValidationException(
+        'Por favor, complete todos los campos requeridos correctamente',
+        errors
+      );
+      this.errorHandler.handleError(exception, { duration: 6000 });
+      return;
+    }
+
+    // Prevenir doble submit
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    const photoControl = this.form.get('persona.foto');
+    
+    if (this.selectedFile) {
+      // Subir foto primero
+      this.mediaService.uploadPhoto(this.selectedFile).subscribe({
+        next: (response) => {
+          const photoUrl = response.url;
+          if (photoControl) {
+            photoControl.setValue(photoUrl);
+          }
+          this.registerPerson();
+        }, 
+        error: (error) => {
+          // El error ya fue manejado por el interceptor
+          console.error('Error al subir la foto', error);
+          this.isSubmitting = false;
+          
+          // Preguntar si desea continuar sin foto
+          // Aquí podrías mostrar un diálogo de confirmación
+          // Por ahora, simplemente abortamos el registro
+        }
+      });
+    } else {
+      // Registrar sin foto
+      this.registerPerson();
+    }
+  }
+
+  close() {
+    if (this.isSubmitting) {
+      // Prevenir cierre durante submit
+      return;
+    }
+    this.dialogRef.close();
+    this.form.reset();
+    this.selectedFile = null;
+  }
+
+  /**
+   * Método auxiliar para verificar si un campo tiene error
+   */
+  hasError(fieldName: string): boolean {
+    const control = this.form.get(fieldName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  /**
+   * Método auxiliar para obtener el mensaje de error de un campo
+   */
+  getErrorMessage(fieldName: string): string {
+    const control = this.form.get(fieldName);
+    if (!control || !control.errors) return '';
+
+    if (control.errors['required']) return 'Este campo es requerido';
+    if (control.errors['minlength']) {
+      return `Debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`;
+    }
+    if (control.errors['pattern']) return 'Formato inválido';
+    
+    return 'Campo inválido';
+  }
+}
